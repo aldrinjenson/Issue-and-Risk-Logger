@@ -28,15 +28,18 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
 console.log("Up and running..");
 const helpMessage = "Help is on it's way. :)";
-
-mongoose
-  .connect(process.env.DB_URL, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connected to db"))
-  .catch((err) => console.log("error in connecting to db" + err));
+let db = null;
+if (!db) {
+  db = mongoose
+    .connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => console.log("Connected to db"))
+    .catch((err) => console.log("error in connecting to db" + err));
+}
+console.log(db);
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -67,8 +70,6 @@ bot.onText(/\/register$/, async (msg) => {
 
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
 });
-
-// bot.on("");
 
 bot.on("callback_query", async (callbackQuery) => {
   const { data: action, message: msg } = callbackQuery;
