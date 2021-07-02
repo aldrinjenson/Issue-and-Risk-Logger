@@ -1,0 +1,25 @@
+{
+  "name": "issue-logger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "node",
+    "telegram-bot-ap"
+  ],
+  "author": "Aldrin Jenson <aldrinjenson@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "mongoose": "^5.13.0",
+    "node-telegram-bot-api": "^0.53.0",
+    "short-uuid": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.29.0"
+  }
+}
