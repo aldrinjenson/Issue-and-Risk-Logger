@@ -4,7 +4,15 @@ const mongoose = require("mongoose");
 process.env.NTBA_FIX_319 = 1;
 const TelegramBot = require("node-telegram-bot-api");
 const http = require("http");
-const { handleButtons, callBackKeys } = require("./utils");
+const {
+  handleButtons,
+  callBackKeys,
+  handleIsFromPrivateMessage,
+} = require("./utils");
+const {
+  registerAsMainGroup,
+  registerAsSubGroup,
+} = require("./controller/Groupcontroller");
 
 ////////////////// fix for heroku hosting - start//////////////////
 const requestListener = function (req, res) {
@@ -21,14 +29,14 @@ bot.on("polling_error", console.log);
 console.log("Up and running..");
 const helpMessage = "Help is on it's way. :)";
 
-// mongoose
-//   .connect(process.env.DB_URL, {
-//     useNewUrlParser: true,
-//     useCreateIndex: true,
-//     useUnifiedTopology: true,
-//   })
-//   .then(() => console.log("Connected to db"))
-//   .catch((err) => console.log("error in connecting to db" + err));
+mongoose
+  .connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to db"))
+  .catch((err) => console.log("error in connecting to db" + err));
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -41,46 +49,36 @@ bot.onText(/\/help/, (msg) => {
   bot.sendMessage(chatId, helpMessage);
 });
 
-bot.onText(/\/register/, (msg) => {
+bot.onText(/\/register$/, async (msg) => {
+  if (await handleIsFromPrivateMessage(msg, bot)) {
+    return;
+  }
   const chatId = msg.chat.id;
   const keyboardOptions = handleButtons([
     {
       text: "Register as main group",
-      callback: () => {
-        console.log("helo there");
-      },
+      callback: registerAsMainGroup,
     },
     {
       text: "Register as sub group",
-      callback: () => {
-        console.log("helo there from second");
-      },
+      callback: registerAsSubGroup,
     },
   ]);
 
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
 });
 
-bot.on("callback_query", (callbackQuery) => {
-  const action = callbackQuery.data;
-  const { message: msg } = callbackQuery;
-  const opts = {
-    chat_id: msg.chat.id,
-    message_id: msg.message_id,
-  };
-  if (msg.chat.type === "private") {
-    bot.editMessageText(
-      "Please use commands from a group.\nHere's the help command\n" +
-        helpMessage,
-      opts
-    );
+// bot.on("");
+
+bot.on("callback_query", async (callbackQuery) => {
+  const { data: action, message: msg } = callbackQuery;
+  if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
-    console.log(key, val);
     if (action === key) {
-      val();
+      val(callbackQuery, bot);
     }
   });
 });

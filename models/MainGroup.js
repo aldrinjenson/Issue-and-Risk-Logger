@@ -3,15 +3,23 @@ const { Schema } = mongoose;
 
 const MainGroupSchema = new Schema(
   {
-    title: {
+    registeredBy: {
       type: String,
       required: true,
     },
-    snippet: {
+    registeredDate: {
+      type: Number,
+      required: true,
+    },
+    subGroupIds: {
+      type: [String],
+      required: true,
+    },
+    groupId: {
       type: String,
       required: true,
     },
-    body: {
+    joinToken: {
       type: String,
       required: true,
     },
@@ -20,4 +28,4 @@ const MainGroupSchema = new Schema(
 );
 
 const MainGroup = mongoose.model("MainGroup", MainGroupSchema);
-module.exports = MainGroup;
+module.exports = { MainGroup };
