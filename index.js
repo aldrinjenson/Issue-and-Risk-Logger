@@ -1,3 +1,5 @@
+/* eslint-disable no-inline-comments */
+/* eslint-disable line-comment-position */
 /* eslint-disable camelcase */
 require("dotenv").config();
 const mongoose = require("mongoose");
@@ -8,11 +10,13 @@ const {
   handleButtons,
   callBackKeys,
   handleIsFromPrivateMessage,
+  messageReplyPairs,
 } = require("./utils");
 const {
   registerAsMainGroup,
   registerAsSubGroup,
-} = require("./controller/Groupcontroller");
+} = require("./controller/registerController");
+const { addNewIssue } = require("./controller/issueController");
 
 ////////////////// fix for heroku hosting - start//////////////////
 const requestListener = function (req, res) {
@@ -26,9 +30,8 @@ server.listen(PORT, () => console.log("server listening"));
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
-console.log("Up and running..");
 const helpMessage = "Help is on it's way. :)";
-let db = null;
+let db = null; // connect db
 if (!db) {
   db = mongoose
     .connect(process.env.DB_URL, {
@@ -39,7 +42,6 @@ if (!db) {
     .then(() => console.log("Connected to db"))
     .catch((err) => console.log("error in connecting to db" + err));
 }
-console.log(db);
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -67,8 +69,29 @@ bot.onText(/\/register$/, async (msg) => {
       callback: registerAsSubGroup,
     },
   ]);
-
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
+});
+
+bot.onText(/\/issue$/, async (msg) => {
+  if (await handleIsFromPrivateMessage(msg, bot)) {
+    return;
+  }
+  const chatId = msg.chat.id;
+  const keyboardOptions = handleButtons([
+    {
+      text: "Add new issue",
+      callback: addNewIssue,
+    },
+    {
+      text: "List all issues",
+      callback: registerAsSubGroup,
+    },
+    {
+      text: "Update issue",
+      callback: registerAsSubGroup,
+    },
+  ]);
+  bot.sendMessage(chatId, "Issue options:", keyboardOptions);
 });
 
 bot.on("callback_query", async (callbackQuery) => {
@@ -82,6 +105,18 @@ bot.on("callback_query", async (callbackQuery) => {
       val(callbackQuery, bot);
     }
   });
+});
+
+bot.on("message", (msg) => {
+  const replyToId = msg.reply_to_message;
+  if (replyToId) {
+    Object.entries(messageReplyPairs)?.forEach(([key, val]) => {
+      if (replyToId.message_id === key) {
+        val(msg, bot);
+        delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
+      }
+    });
+  }
 });
 
 module.exports = { bot };

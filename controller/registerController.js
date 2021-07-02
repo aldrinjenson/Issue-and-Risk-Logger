@@ -3,6 +3,7 @@
 const short = require("short-uuid");
 const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
+const { handleReplyMessage } = require("../utils");
 
 const registerAsMainGroup = (data, bot) => {
   const { message, from } = data;
@@ -68,15 +69,12 @@ const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
 
 const registerAsSubGroup = ({ message }, bot) => {
   const { id: groupId } = message.chat;
+  const msgId = message.message_id;
   bot.editMessageText("Enter join token as a reply to this message", {
     chat_id: groupId,
-    message_id: message.message_id,
+    message_id: msgId,
   });
-  bot.on("message", (msg) => {
-    if (msg.reply_to_message?.message_id === message.message_id) {
-      handleTokenVerifyAndRegisterSubgroup(msg, bot);
-    }
-  });
+  handleReplyMessage(msgId, handleTokenVerifyAndRegisterSubgroup);
 };
 
 module.exports = { registerAsMainGroup, registerAsSubGroup };
