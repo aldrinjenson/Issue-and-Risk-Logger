@@ -1,6 +1,7 @@
 const callBackKeys = {};
 
 const handleButtons = (rows) => {
+  // custom wrapper to make inline keyboards with callback easy
   const markupRows = rows.map((row) => {
     const key = row.text;
     callBackKeys[key] = row.onPress;
@@ -27,11 +28,11 @@ const handleIsFromPrivateMessage = async (msg, bot) => {
 };
 
 const messageReplyPairs = {};
-
 const handleReplyMessage = (msgId, callBack) => {
   messageReplyPairs[msgId] = callBack;
 };
 
+// function to easily get answers to a set of ordered prompts
 const handleReplyFlow = (promptsList, message, bot) =>
   new Promise((resolve) => {
     const values = {};

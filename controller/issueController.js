@@ -40,6 +40,7 @@ const addNewIssue = async (data, bot) => {
     name: values.name,
     criticalDate,
     mainGroupId,
+    isOpen: true,
   });
   newIssue
     .save()

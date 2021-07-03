@@ -28,17 +28,17 @@ server.listen(PORT, () => console.log("server listening"));
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
 const helpMessage = "Help is on it's way. :)";
-let db = null; // connect db
-if (!db) {
-  db = mongoose
-    .connect(process.env.DB_URL, {
-      useNewUrlParser: true,
-      useCreateIndex: true,
-      useUnifiedTopology: true,
-    })
-    .then(() => console.log("Connected to db"))
-    .catch((err) => console.log("error in connecting to db" + err));
-}
+// let db = null; // connect db
+// if (!db) { db=
+mongoose
+  .connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to db"))
+  .catch((err) => console.log("error in connecting to db" + err));
+// }
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -84,7 +84,7 @@ bot.onText(/\/issue$/, async (msg) => {
       onPress: listIssues,
     },
     {
-      text: "Update issue",
+      text: "Update status",
       onPress: registerAsSubGroup,
     },
   ]);
@@ -110,7 +110,7 @@ bot.on("message", (msg) => {
     Object.entries(messageReplyPairs)?.forEach(([key, val]) => {
       if (replyToId.message_id == key) {
         val(msg, bot);
-        // delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
+        delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
       }
     });
   }

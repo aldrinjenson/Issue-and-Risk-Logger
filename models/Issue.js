@@ -31,6 +31,10 @@ const IssueSchema = new Schema(
       type: String,
       required: false,
     },
+    isOpen: {
+      type: Boolean,
+      required: true,
+    },
   },
   { timestamps: true }
 );
