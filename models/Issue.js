@@ -27,6 +27,10 @@ const IssueSchema = new Schema(
       type: String,
       required: true,
     },
+    criticalDate: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );

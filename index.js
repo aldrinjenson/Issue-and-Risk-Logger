@@ -11,12 +11,12 @@ const {
   callBackKeys,
   handleIsFromPrivateMessage,
   messageReplyPairs,
-} = require("./utils");
+} = require("./utils/common");
 const {
   registerAsMainGroup,
   registerAsSubGroup,
 } = require("./controller/registerController");
-const { addNewIssue } = require("./controller/issueController");
+const { addNewIssue, listIssues } = require("./controller/issueController");
 
 ////////////////// fix for heroku hosting - start//////////////////
 const requestListener = function (req, res) {
@@ -62,11 +62,11 @@ bot.onText(/\/register$/, async (msg) => {
   const keyboardOptions = handleButtons([
     {
       text: "Register as main group",
-      callback: registerAsMainGroup,
+      onPress: registerAsMainGroup,
     },
     {
       text: "Register as sub group",
-      callback: registerAsSubGroup,
+      onPress: registerAsSubGroup,
     },
   ]);
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
@@ -80,18 +80,18 @@ bot.onText(/\/issue$/, async (msg) => {
   const keyboardOptions = handleButtons([
     {
       text: "Add new issue",
-      callback: addNewIssue,
+      onPress: addNewIssue,
     },
     {
       text: "List all issues",
-      callback: registerAsSubGroup,
+      onPress: listIssues,
     },
     {
       text: "Update issue",
-      callback: registerAsSubGroup,
+      onPress: registerAsSubGroup,
     },
   ]);
-  bot.sendMessage(chatId, "Issue options:", keyboardOptions);
+  bot.sendMessage(chatId, "Choose option:", keyboardOptions);
 });
 
 bot.on("callback_query", async (callbackQuery) => {

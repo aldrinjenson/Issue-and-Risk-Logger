@@ -3,7 +3,7 @@
 const short = require("short-uuid");
 const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
-const { handleReplyMessage } = require("../utils");
+const { handleReplyMessage } = require("../utils/common");
 
 const registerAsMainGroup = (data, bot) => {
   const { message, from } = data;
@@ -61,7 +61,7 @@ const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
       );
       bot.sendMessage(
         doc.groupId,
-        `New sub group "${grp.groupName}" registered by @${msg.from.username}`
+        `New sub group "${msg.chat.title}" registered by @${msg.from.username}`
       );
     });
   });

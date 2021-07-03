@@ -1,6 +1,5 @@
 /* eslint-disable no-inline-comments */
 /* eslint-disable line-comment-position */
-/* eslint-disable object-property-newline */
 /* eslint-disable camelcase */
 
 const callBackKeys = {};
@@ -8,7 +7,7 @@ const callBackKeys = {};
 const handleButtons = (rows) => {
   const markupRows = rows.map((row) => {
     const key = row.text;
-    callBackKeys[key] = row.callback;
+    callBackKeys[key] = row.onPress;
     return { text: row.text, callback_data: key };
   });
 
