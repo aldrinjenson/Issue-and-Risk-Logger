@@ -1,3 +1,5 @@
+const { MainGroup } = require("../models/MainGroup");
+
 const callBackKeys = {};
 
 // custom wrapper to make inline keyboards with callback easy
@@ -16,6 +18,20 @@ const handleButtons = (rows) => {
     },
   };
 };
+
+const isMainGroup = (groupId) =>
+  new Promise((resolve) => {
+    MainGroup.find({ groupId }, (err, data) => {
+      console.log({ data });
+      if (err) {
+        console.log("error " + err);
+        return;
+      }
+      if (data.length) {
+        resolve(true);
+      } else resolve(false);
+    });
+  });
 
 const handleIsFromPrivateMessage = async (msg, bot) => {
   if (msg.chat.type === "private") {
@@ -65,4 +81,5 @@ module.exports = {
   messageReplyPairs,
   handleReplyMessage,
   handleReplyFlow,
+  isMainGroup,
 };
