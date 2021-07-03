@@ -111,9 +111,9 @@ bot.on("message", (msg) => {
   const replyToId = msg.reply_to_message;
   if (replyToId) {
     Object.entries(messageReplyPairs)?.forEach(([key, val]) => {
-      if (replyToId.message_id === key) {
+      if (replyToId.message_id == key) {
         val(msg, bot);
-        delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
+        // delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
       }
     });
   }

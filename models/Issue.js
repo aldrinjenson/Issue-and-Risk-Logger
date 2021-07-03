@@ -23,7 +23,7 @@ const IssueSchema = new Schema(
       type: String,
       required: true,
     },
-    fromGroupId: {
+    addedGroupId: {
       type: String,
       required: true,
     },
