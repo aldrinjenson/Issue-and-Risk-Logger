@@ -1,6 +1,3 @@
-/* eslint-disable no-inline-comments */
-/* eslint-disable line-comment-position */
-/* eslint-disable camelcase */
 require("dotenv").config();
 const mongoose = require("mongoose");
 process.env.NTBA_FIX_319 = 1;

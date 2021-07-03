@@ -1,6 +1,3 @@
-/* eslint-disable no-negated-condition */
-/* eslint-disable max-statements */
-/* eslint-disable max-lines-per-function */
 const { SubGroup } = require("../models/SubGroup");
 const { Issue } = require("../models/Issue");
 const { handleReplyFlow } = require("../utils/common");

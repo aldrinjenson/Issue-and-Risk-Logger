@@ -1,7 +1,3 @@
-/* eslint-disable no-inline-comments */
-/* eslint-disable line-comment-position */
-/* eslint-disable camelcase */
-
 const callBackKeys = {};
 
 const handleButtons = (rows) => {
@@ -36,7 +32,6 @@ const handleReplyMessage = (msgId, callBack) => {
   messageReplyPairs[msgId] = callBack;
 };
 
-// eslint-disable-next-line max-params
 const handleReplyFlow = (promptsList, message, bot) =>
   new Promise((resolve) => {
     const values = {};
@@ -47,7 +42,6 @@ const handleReplyFlow = (promptsList, message, bot) =>
       }
       const cb = (msg) => {
         // called from index.js when a reply has been received
-        // eslint-disable-next-line prefer-destructuring
         const { key } = prompts[0];
         const val = msg.text;
         values[key] = val;

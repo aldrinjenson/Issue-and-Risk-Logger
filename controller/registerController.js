@@ -1,5 +1,3 @@
-/* eslint-disable object-property-newline */
-/* eslint-disable camelcase */
 const short = require("short-uuid");
 const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
