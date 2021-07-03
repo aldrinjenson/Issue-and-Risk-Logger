@@ -2,6 +2,7 @@ const short = require("short-uuid");
 const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
 const { handleReplyMessage } = require("../utils/common");
+const { generateGroupCode } = require("../utils/groupUtils");
 
 const registerAsMainGroup = (data, bot) => {
   const { message, from } = data;
@@ -29,25 +30,29 @@ const registerAsMainGroup = (data, bot) => {
 const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
   const token = msg.text;
   const groupId = msg.chat.id;
-  MainGroup.findOne({ joinToken: token }, (err, grp) => {
+  MainGroup.findOne({ joinToken: token }, async (err, mainGrp) => {
     if (err) {
       console.log("err " + err);
       return;
-    } else if (!grp) {
+    } else if (!mainGrp) {
       bot.sendMessage(
         msg.chat.id,
         "Invalid token. Please verify and try again"
       );
       return;
     }
+    const groupName = msg.chat.title;
+    const groupCode = await generateGroupCode(mainGrp.groupId, groupName);
 
-    grp.subGroupIds = [...grp.subGroupIds, groupId];
-    grp.save().then(async (doc) => {
+    mainGrp.subGroupIds = [...mainGrp.subGroupIds, groupId];
+    mainGrp.save().then(async (doc) => {
       const newSubGroup = new SubGroup({
         registeredBy: msg.from.username,
         registeredDate: msg.date,
-        mainGroupId: grp.groupId,
+        mainGroupId: mainGrp.groupId,
         groupId,
+        groupName,
+        groupCode,
       });
       await newSubGroup.save();
       console.log("saved");
@@ -55,7 +60,7 @@ const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
 
       bot.sendMessage(
         msg.chat.id,
-        `Connected to main group: "${grp.groupName}"`
+        `Connected to main group: "${mainGrp.groupName}"`
       );
       bot.sendMessage(
         doc.groupId,

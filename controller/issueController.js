@@ -1,25 +1,29 @@
 const { SubGroup } = require("../models/SubGroup");
 const { Issue } = require("../models/Issue");
 const { handleReplyFlow, handleButtons } = require("../utils/common");
-const { formatIssues, handleIssueUpdate } = require("../utils/issueUtils");
+const {
+  formatIssuesList,
+  handleIssueUpdate,
+  getIssueIdFromSubGroupCode,
+} = require("../utils/issueUtils");
 
 const addNewIssue = async (data, bot) => {
   const { message, from } = data;
   const { title: subGroupName, id: groupId } = message.chat;
-  const { mainGroupId } = await SubGroup.findOne({ groupId }).exec();
+  const CurrentSubGroup = await SubGroup.findOne({ groupId }).exec();
 
-  if (!mainGroupId) {
+  if (!CurrentSubGroup) {
     bot.sendMessage(
       groupId,
       "Cannot fetch the main group details. \nEnsure that you have properly registered the bot"
     );
     return;
   }
-
+  const { mainGroupId, groupCode } = CurrentSubGroup;
   const flowPrompts = [
     {
       key: "name",
-      prompt: "Enter issue as a reply to this message",
+      prompt: "Enter issue name as a reply to this message",
     },
     {
       key: "criticalDate",
@@ -28,6 +32,7 @@ const addNewIssue = async (data, bot) => {
     },
   ];
 
+  const issueCode = await getIssueIdFromSubGroupCode(groupId, groupCode);
   const values = await handleReplyFlow(flowPrompts, message, bot);
   const criticalDate =
     values.criticalDate.length > 3 ? values.criticalDate : null;
@@ -41,7 +46,9 @@ const addNewIssue = async (data, bot) => {
     criticalDate,
     mainGroupId,
     isOpen: true,
+    issueCode,
   });
+
   newIssue
     .save()
     .then(() => {
@@ -49,13 +56,15 @@ const addNewIssue = async (data, bot) => {
         groupId,
         `New issue registered as:\nTitle: ${values.name}\nCritical date: ${
           criticalDate || "Nil"
-        }`
+        }\nIssueCode: ${issueCode}`
       );
       bot.sendMessage(
         mainGroupId,
         `New issue registered in ${subGroupName} by @${
           from.username
-        } as:\nTitle: ${values.name}\nCritical date: ${criticalDate || "Nil"}`
+        } as:\nTitle: ${values.name}\nCritical date: ${
+          criticalDate || "Nil"
+        }\nIssue Code: ${issueCode}`
       );
     })
     .catch((err) => {
@@ -73,19 +82,24 @@ const listIssues = async ({ message }, bot) => {
   const groupQuery = isSubGroup
     ? { addedGroupId: groupId }
     : { mainGroupId: groupId };
-  const issuesList = await Issue.find(groupQuery).exec();
-  const formattedIssuesListMessage = formatIssues(issuesList, isSubGroup);
+
+  // list only open issues
+  const issuesList = await Issue.find({ ...groupQuery, isOpen: true }).exec();
+  const formattedIssuesListMessage = formatIssuesList(issuesList, isSubGroup);
   bot.sendMessage(
     groupId,
     formattedIssuesListMessage.length
       ? formattedIssuesListMessage
-      : "No issue have been registered"
+      : "No issues have been registered"
   );
 };
 
 const updateIssue = async ({ message }, bot) => {
   const { id: groupId } = message.chat;
-  const issuesList = await Issue.find({ addedGroupId: groupId }).exec();
+  const issuesList = await Issue.find({
+    addedGroupId: groupId,
+    isOpen: true,
+  }).exec();
 
   const buttons = issuesList.map((issue, index) => ({
     text: `${index + 1}. ${issue.name}`,

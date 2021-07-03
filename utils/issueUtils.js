@@ -1,25 +1,42 @@
 const { Issue } = require("../models/Issue");
 const { handleButtons, handleReplyMessage } = require("./common");
 
-const formatIssues = (issuesList = [], isSubGroup) => {
+const formatIssuesList = (issuesList = [], isSubGroup) => {
   let msg = "";
   issuesList.forEach((issue, index) => {
     const status = issue.isOpen ? "Open" : "Closed";
-    msg += `${index + 1}. ${issue.name}\n    Critical Date: ${
-      issue.criticalDate || "nil"
-    }\n    Added by @${issue.addedBy}\n    Status: ${status}\n`;
+    msg += `${index + 1}. ${issue.name}\n    IssueId: ${
+      issue.issueCode
+    }\n    Critical Date: ${issue.criticalDate || "nil"}\n    Added by @${
+      issue.addedBy
+    }\n    Status: ${status}\n`;
     // adding 4 spaces before each new line for nice formatting :)
     if (!isSubGroup) {
-      msg += `    sub-group: ${issue.addedGroupName}\n`;
+      msg += `    Group: ${issue.addedGroupName}\n`;
     }
     msg += "\n";
   });
   return msg;
 };
 
+const getIssueIdFromSubGroupCode = async (groupId, groupCode) => {
+  let count = await Issue.countDocuments({ addedGroupId: groupId }).exec();
+  if (count < 0) {
+    count = "0" + count;
+  }
+  return groupCode + "-" + count;
+};
+
 const transformStatusToBooelan = (val = "") => {
   // return the isOpenStatus
-  const isDoneSynonyms = ["done", "completed", "finished", "closed", "close"];
+  const isDoneSynonyms = [
+    "done",
+    "completed",
+    "finished",
+    "closed",
+    "close",
+    "complete",
+  ];
   const isOpenSynonyms = ["open", "incomplete", "incompleted", "remains"];
 
   if (isOpenSynonyms.includes(val.toLowerCase())) {
@@ -46,15 +63,31 @@ const handleUpdateField = (key, label, { issueId, groupId, bot }) => {
       key === "isOpen" ? transformStatusToBooelan(msg.text) : msg.text;
     if (val === -1) {
       handleError("Wrong input");
+      return;
     }
-    Issue.updateOne({ _id: issueId }, { [key]: val })
-      .then((res) => {
-        console.log("Modified record " + res.nModified);
-        bot.sendMessage(groupId, `${label} has been updated successfully`);
-      })
-      .catch((err) => {
+    Issue.findOne({ _id: issueId }, (err, issue) => {
+      if (err) {
         handleError(err);
-      });
+        return;
+      }
+      if (issue[key] === val) {
+        bot.sendMessage(groupId, `${label} is already same`);
+        return;
+      }
+      issue[key] = val;
+      issue.save().then(() => {
+        const status = issue.isOpen ? "Open" : "Closed";
+        const updateSuccessReply = `${issue.name}\nIssue Code: ${issue.issueCode}\nCritical Date: ${issue.criticalDate}\nStatus: ${status} `;
+        bot.sendMessage(
+          groupId,
+          `${label} has been updated successfully\n\nUpdated issue:\n${updateSuccessReply}`
+        );
+        bot.sendMessage(
+          issue.mainGroupId,
+          `${label} has been updated for "${issue.name}" in "${issue.addedGroupName}" by @${msg.from.username}\n\nUpdated issue: ${updateSuccessReply}`
+        );
+      }); // end of save
+    });
   };
 
   bot
@@ -90,4 +123,8 @@ const handleIssueUpdate = (issueId, { message: { chat, message_id } }, bot) => {
   bot.sendMessage(groupId, "Choose field to update: ", keyboardOptions);
 };
 
-module.exports = { formatIssues, handleUpdateField, handleIssueUpdate };
+module.exports = {
+  formatIssuesList,
+  getIssueIdFromSubGroupCode,
+  handleIssueUpdate,
+};

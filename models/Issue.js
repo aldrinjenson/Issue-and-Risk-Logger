@@ -35,6 +35,10 @@ const IssueSchema = new Schema(
       type: Boolean,
       required: true,
     },
+    issueCode: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

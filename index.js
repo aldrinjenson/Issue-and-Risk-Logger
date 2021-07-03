@@ -85,15 +85,15 @@ bot.onText(/\/issue/, async (msg) => {
 
   const buttons = [
     {
-      text: "List all issues",
+      text: "List issues",
       onPress: listIssues,
     },
   ];
   if (isSubGroup) {
     buttons.push(
       {
-        text: "List all issues",
-        onPress: listIssues,
+        text: "Add new Issue",
+        onPress: addNewIssue,
       },
       {
         text: "Update issue",
