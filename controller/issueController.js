@@ -1,7 +1,7 @@
 const { SubGroup } = require("../models/SubGroup");
 const { Issue } = require("../models/Issue");
-const { handleReplyFlow } = require("../utils/common");
-const { formatIssues } = require("../utils/issueUtils");
+const { handleReplyFlow, handleButtons } = require("../utils/common");
+const { formatIssues, handleIssueUpdate } = require("../utils/issueUtils");
 
 const addNewIssue = async (data, bot) => {
   const { message, from } = data;
@@ -67,8 +67,7 @@ const addNewIssue = async (data, bot) => {
     });
 };
 
-const listIssues = async (data, bot) => {
-  const { message } = data;
+const listIssues = async ({ message }, bot) => {
   const { id: groupId } = message.chat;
   const isSubGroup = await SubGroup.findOne({ groupId }).exec();
   const groupQuery = isSubGroup
@@ -84,4 +83,17 @@ const listIssues = async (data, bot) => {
   );
 };
 
-module.exports = { addNewIssue, listIssues };
+const updateIssue = async ({ message }, bot) => {
+  const { id: groupId } = message.chat;
+  const issuesList = await Issue.find({ addedGroupId: groupId }).exec();
+
+  const buttons = issuesList.map((issue, index) => ({
+    text: `${index + 1}. ${issue.name}`,
+    onPress: (data, bot) => handleIssueUpdate(issue._id, data, bot),
+  }));
+
+  const keyboardOptions = handleButtons(buttons);
+  bot.sendMessage(groupId, "Choose issue to update: ", keyboardOptions);
+};
+
+module.exports = { addNewIssue, listIssues, updateIssue };

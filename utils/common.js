@@ -1,16 +1,18 @@
 const callBackKeys = {};
 
+// custom wrapper to make inline keyboards with callback easy
 const handleButtons = (rows) => {
-  // custom wrapper to make inline keyboards with callback easy
+  const isSingleLinedBetter = rows.length > 3; // if more than 3 items shows up, then show them in separate lines to prevent congestion
   const markupRows = rows.map((row) => {
     const key = row.text;
     callBackKeys[key] = row.onPress;
-    return { text: row.text, callback_data: key };
+    const keyBoardRow = { text: row.text, callback_data: key };
+    return isSingleLinedBetter ? [keyBoardRow] : keyBoardRow;
   });
 
   return {
     reply_markup: {
-      inline_keyboard: [markupRows],
+      inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
     },
   };
 };

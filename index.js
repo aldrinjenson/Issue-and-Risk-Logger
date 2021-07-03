@@ -13,7 +13,11 @@ const {
   registerAsMainGroup,
   registerAsSubGroup,
 } = require("./controller/registerController");
-const { addNewIssue, listIssues } = require("./controller/issueController");
+const {
+  addNewIssue,
+  listIssues,
+  updateIssue,
+} = require("./controller/issueController");
 
 ////////////////// fix for heroku hosting - start//////////////////
 const requestListener = function (req, res) {
@@ -28,8 +32,6 @@ server.listen(PORT, () => console.log("server listening"));
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
 const helpMessage = "Help is on it's way. :)";
-// let db = null; // connect db
-// if (!db) { db=
 mongoose
   .connect(process.env.DB_URL, {
     useNewUrlParser: true,
@@ -38,7 +40,6 @@ mongoose
   })
   .then(() => console.log("Connected to db"))
   .catch((err) => console.log("error in connecting to db" + err));
-// }
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -84,8 +85,8 @@ bot.onText(/\/issue$/, async (msg) => {
       onPress: listIssues,
     },
     {
-      text: "Update status",
-      onPress: registerAsSubGroup,
+      text: "Update issue",
+      onPress: updateIssue,
     },
   ]);
   bot.sendMessage(chatId, "Choose option:", keyboardOptions);
