@@ -22,7 +22,6 @@ const handleButtons = (rows) => {
 const isMainGroup = (groupId) =>
   new Promise((resolve) => {
     MainGroup.find({ groupId }, (err, data) => {
-      console.log({ data });
       if (err) {
         console.log("error " + err);
         return;

@@ -3,18 +3,31 @@ const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
 const { handleReplyMessage } = require("../utils/common");
 const { generateGroupCode } = require("../utils/groupUtils");
+const { AlreadyRegisteredGroup } = require("../utils/registerUtils");
 
-const registerAsMainGroup = (data, bot) => {
+const registerAsMainGroup = async (data, bot) => {
   const { message, from } = data;
   const { title, id: groupId } = message.chat;
-  const joinToken = short.generate();
+  const registeredGroup = await AlreadyRegisteredGroup(groupId);
+
+  if (registeredGroup) {
+    // if already registered as main group
+    bot.sendMessage(
+      groupId,
+      "Aleady registerd as main group\nUse the following token to register sub groups:\n"
+    );
+    bot.sendMessage(groupId, registeredGroup.joinToken);
+    return;
+  }
+
+  const token = short.generate();
   const obj = {
     registeredBy: from.username,
     registeredDate: message.date,
     subGroupIds: [],
     groupName: title || "",
     groupId,
-    joinToken,
+    joinToken: token,
   };
   const newGroup = new MainGroup(obj);
   newGroup.save().then(() => {
@@ -23,7 +36,7 @@ const registerAsMainGroup = (data, bot) => {
       message_id: message.message_id,
     });
     bot.sendMessage(groupId, "Register sub groups using the following token:");
-    bot.sendMessage(groupId, joinToken);
+    bot.sendMessage(groupId, token);
   });
 };
 
@@ -55,8 +68,6 @@ const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
         groupCode,
       });
       await newSubGroup.save();
-      console.log("saved");
-      console.log(doc);
 
       bot.sendMessage(
         msg.chat.id,

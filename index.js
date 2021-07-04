@@ -109,7 +109,7 @@ bot.onText(/\/issue|\/risk/, async (msg, match) => {
           onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
         },
         {
-          text: `Filtered ${entity.name}`,
+          text: `Filtered ${entity.name}s`,
           onPress: (cbQuery, bot) => listFilteredRecords(cbQuery, bot, entity),
         },
       ];
@@ -123,11 +123,12 @@ bot.on("callback_query", async (callbackQuery) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
+  console.log({ action });
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (action === key) {
       val(callbackQuery, bot);
-      delete callBackKeys[key];
+      // delete callBackKeys[key];
     }
   });
 });

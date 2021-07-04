@@ -36,7 +36,9 @@ const handleGroupFilter = async (selectedGroupId, { message }, bot) => {
   const issues = await Issue.find({
     addedGroupId: selectedGroupId,
     isOpen: true,
-  });
+  })
+    .sort("issueCode")
+    .exec();
   handleListIssues(issues, bot, message, false);
 };
 

@@ -51,6 +51,7 @@ const addNewEntity = async (data, bot, entity) => {
   const issueCode = await getIssueIdFromSubGroupCode(groupId, groupCode);
   const values = await handleReplyFlow(flowPrompts, message, bot);
   console.log({ values });
+  const { assignee, criticalDate } = values;
 
   const newIssue = new Issue({
     addedBy: from.username,
@@ -58,8 +59,8 @@ const addNewEntity = async (data, bot, entity) => {
     addedDate: message.date,
     addedGroupName: subGroupName,
     name: values.name,
-    assignee: values.assignee || null,
-    criticalDate: values.criticalDate || null,
+    assignee: assignee || null,
+    criticalDate: criticalDate || null,
     mainGroupId,
     isOpen: true,
     issueCode,
@@ -73,7 +74,7 @@ const addNewEntity = async (data, bot, entity) => {
         groupId,
         `New issue registered as:\nTitle: ${values.name}\nCritical date: ${
           criticalDate || "Nil"
-        }\nIssueCode: ${issueCode}\nAssigned to: ${entityAssignee}`
+        }\nIssueCode: ${issueCode}\nAssigned to: ${assignee}`
       );
       bot.sendMessage(
         mainGroupId,
@@ -81,7 +82,7 @@ const addNewEntity = async (data, bot, entity) => {
           from.username
         } as:\nTitle: ${values.name}\nCritical date: ${
           criticalDate || "Nil"
-        }\nIssue Code: ${issueCode}\nAssigned to: ${entityAssignee}`
+        }\nIssue Code: ${issueCode}\nAssigned to: ${assignee}`
       );
     })
     .catch((err) => {
@@ -100,7 +101,9 @@ const listRecords = async ({ message }, bot) => {
     ? { addedGroupId: groupId }
     : { mainGroupId: groupId };
 
-  const issuesList = await Issue.find({ ...groupQuery, isOpen: true }).exec();
+  const issuesList = await Issue.find({ ...groupQuery, isOpen: true })
+    .sort("issueCode")
+    .exec();
   handleListIssues(issuesList, bot, message, isSubGroup);
 };
 
@@ -110,7 +113,9 @@ const listFilteredRecords = async ({ message }, bot) => {
 
   const subGroupsUnderThisMainGroup = await SubGroup.find({
     mainGroupId: groupId,
-  }).exec();
+  })
+    .sort("groupCode")
+    .exec();
 
   const buttons = subGroupsUnderThisMainGroup.map((grp) => ({
     text: `${grp.groupCode} - ${grp.groupName}`,
