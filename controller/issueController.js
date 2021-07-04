@@ -5,7 +5,10 @@ const {
   formatIssuesList,
   handleIssueUpdate,
   getIssueIdFromSubGroupCode,
+  handleGroupFilter,
+  handleListIssues,
 } = require("../utils/issueUtils");
+const { MainGroup } = require("../models/MainGroup");
 
 const addNewIssue = async (data, bot) => {
   const { message, from } = data;
@@ -83,15 +86,26 @@ const listIssues = async ({ message }, bot) => {
     ? { addedGroupId: groupId }
     : { mainGroupId: groupId };
 
-  // list only open issues
   const issuesList = await Issue.find({ ...groupQuery, isOpen: true }).exec();
-  const formattedIssuesListMessage = formatIssuesList(issuesList, isSubGroup);
-  bot.sendMessage(
-    groupId,
-    formattedIssuesListMessage.length
-      ? formattedIssuesListMessage
-      : "No issues have been registered"
-  );
+  handleListIssues(issuesList, bot, message, isSubGroup);
+};
+
+// only for main groups
+const listFilteredIssues = async ({ message }, bot) => {
+  const { id: groupId } = message.chat;
+
+  const subGroupsUnderThisMainGroup = await SubGroup.find({
+    mainGroupId: groupId,
+  }).exec();
+
+  const buttons = subGroupsUnderThisMainGroup.map((grp) => ({
+    text: `${grp.groupCode} - ${grp.groupName}`,
+    onPress: async (data, bot) =>
+      await handleGroupFilter(grp.groupId, data, bot),
+  }));
+
+  const keyboardOptions = handleButtons(buttons);
+  bot.sendMessage(groupId, "Choose group to display issues: ", keyboardOptions);
 };
 
 const updateIssue = async ({ message }, bot) => {
@@ -110,4 +124,4 @@ const updateIssue = async ({ message }, bot) => {
   bot.sendMessage(groupId, "Choose issue to update: ", keyboardOptions);
 };
 
-module.exports = { addNewIssue, listIssues, updateIssue };
+module.exports = { addNewIssue, listIssues, updateIssue, listFilteredIssues };

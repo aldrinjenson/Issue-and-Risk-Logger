@@ -19,6 +19,25 @@ const formatIssuesList = (issuesList = [], isSubGroup) => {
   return msg;
 };
 
+const handleListIssues = (issuesList = [], bot, message, isSubGroup) => {
+  const groupId = message.chat.id;
+  const formattedIssuesListMessage = formatIssuesList(issuesList, isSubGroup);
+  bot.sendMessage(
+    groupId,
+    formattedIssuesListMessage.length
+      ? formattedIssuesListMessage
+      : "No open issues"
+  );
+};
+
+const handleGroupFilter = async (selectedGroupId, { message }, bot) => {
+  const issues = await Issue.find({
+    addedGroupId: selectedGroupId,
+    isOpen: true,
+  });
+  handleListIssues(issues, bot, message, false);
+};
+
 const getIssueIdFromSubGroupCode = async (groupId, groupCode) => {
   let count = await Issue.countDocuments({ addedGroupId: groupId }).exec();
   if (count < 0) {
@@ -127,4 +146,7 @@ module.exports = {
   formatIssuesList,
   getIssueIdFromSubGroupCode,
   handleIssueUpdate,
+  handleGroupFilter,
+
+  handleListIssues,
 };

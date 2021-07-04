@@ -18,6 +18,7 @@ const {
   addNewIssue,
   listIssues,
   updateIssue,
+  listFilteredIssues,
 } = require("./controller/issueController");
 
 ////////////////// fix for heroku hosting - start//////////////////
@@ -83,24 +84,33 @@ bot.onText(/\/issue/, async (msg) => {
   const isSubGroup = !(await isMainGroup(groupId));
   const chatId = msg.chat.id;
 
-  const buttons = [
-    {
-      text: "List issues",
-      onPress: listIssues,
-    },
-  ];
-  if (isSubGroup) {
-    buttons.push(
-      {
-        text: "Add new Issue",
-        onPress: addNewIssue,
-      },
-      {
-        text: "Update issue",
-        onPress: updateIssue,
-      }
-    );
-  }
+  // show filtered issues in parent group
+
+  const buttons = isSubGroup
+    ? [
+        {
+          text: "Add new Issue",
+          onPress: addNewIssue,
+        },
+        {
+          text: "List issues",
+          onPress: listIssues,
+        },
+        {
+          text: "Update issue",
+          onPress: updateIssue,
+        },
+      ]
+    : [
+        {
+          text: "List issues",
+          onPress: listIssues,
+        },
+        {
+          text: "Filtered issue",
+          onPress: listFilteredIssues,
+        },
+      ];
 
   const keyboardOptions = handleButtons(buttons);
   bot.sendMessage(chatId, "Choose option:", keyboardOptions);
