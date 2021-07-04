@@ -15,11 +15,12 @@ const {
   registerAsSubGroup,
 } = require("./controller/registerController");
 const {
-  addNewIssue,
-  listIssues,
-  updateIssue,
-  listFilteredIssues,
+  addNewEntity,
+  listRecords,
+  updateRecords,
+  listFilteredRecords,
 } = require("./controller/issueController");
+const { entities } = require("./constants");
 
 ////////////////// fix for heroku hosting - start//////////////////
 const requestListener = function (req, res) {
@@ -30,8 +31,8 @@ const server = http.createServer(requestListener);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log("server listening"));
 ////////////////// fix for heroku hosting - end//////////////////
-
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+let bot = null;
+bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
 const helpMessage = `This is a bot to manage the issue and risk logging among multiple groups.
 Register the bot as 'main' with the /register command in the primary group and then pair sub groups using the join token received
@@ -76,39 +77,40 @@ bot.onText(/\/register/, async (msg) => {
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
 });
 
-bot.onText(/\/issue/, async (msg) => {
+bot.onText(/\/issue|\/risk/, async (msg, match) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
+  const command = match[0].split(" ")[0].slice(1);
+  const entity = entities[command];
+  console.log(entity);
   const { id: groupId } = msg.chat;
   const isSubGroup = !(await isMainGroup(groupId));
   const chatId = msg.chat.id;
 
-  // show filtered issues in parent group
-
   const buttons = isSubGroup
     ? [
         {
-          text: "Add new Issue",
-          onPress: addNewIssue,
+          text: `Add new ${entity.name}`,
+          onPress: (cbQuery, bot) => addNewEntity(cbQuery, bot, entity),
         },
         {
-          text: "List issues",
-          onPress: listIssues,
+          text: `List ${entity.name}s`,
+          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
         },
         {
-          text: "Update issue",
-          onPress: updateIssue,
+          text: `Update ${entity.name}`,
+          onPress: (cbQuery, bot) => updateRecords(cbQuery, bot, entity),
         },
       ]
     : [
         {
-          text: "List issues",
-          onPress: listIssues,
+          text: `List ${entity.name}s`,
+          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
         },
         {
-          text: "Filtered issue",
-          onPress: listFilteredIssues,
+          text: `Filtered ${entity.name}`,
+          onPress: (cbQuery, bot) => listFilteredRecords(cbQuery, bot, entity),
         },
       ];
 
@@ -117,6 +119,7 @@ bot.onText(/\/issue/, async (msg) => {
 });
 
 bot.on("callback_query", async (callbackQuery) => {
+  console.log(callbackQuery);
   const { data: action, message: msg } = callbackQuery;
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
@@ -125,6 +128,7 @@ bot.on("callback_query", async (callbackQuery) => {
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (action === key) {
       val(callbackQuery, bot);
+      delete callBackKeys[key];
     }
   });
 });

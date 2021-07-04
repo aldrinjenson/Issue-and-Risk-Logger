@@ -5,11 +5,13 @@ const formatIssuesList = (issuesList = [], isSubGroup) => {
   let msg = "";
   issuesList.forEach((issue, index) => {
     const status = issue.isOpen ? "Open" : "Closed";
+
     msg += `${index + 1}. ${issue.name}\n    IssueId: ${
       issue.issueCode
     }\n    Critical Date: ${issue.criticalDate || "nil"}\n    Added by @${
       issue.addedBy
-    }\n    Status: ${status}\n`;
+    }\n    Assigned to: ${issue.assignee || "nil"}\n    Status: ${status}\n`;
+
     // adding 4 spaces before each new line for nice formatting :)
     if (!isSubGroup) {
       msg += `    Group: ${issue.addedGroupName}\n`;

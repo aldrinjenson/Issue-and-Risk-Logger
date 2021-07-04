@@ -27,6 +27,10 @@ const IssueSchema = new Schema(
       type: String,
       required: true,
     },
+    assignee: {
+      type: String,
+      required: true,
+    },
     criticalDate: {
       type: String,
       required: false,

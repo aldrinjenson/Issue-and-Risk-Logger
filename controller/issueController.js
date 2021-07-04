@@ -2,15 +2,13 @@ const { SubGroup } = require("../models/SubGroup");
 const { Issue } = require("../models/Issue");
 const { handleReplyFlow, handleButtons } = require("../utils/common");
 const {
-  formatIssuesList,
   handleIssueUpdate,
   getIssueIdFromSubGroupCode,
   handleGroupFilter,
   handleListIssues,
 } = require("../utils/issueUtils");
-const { MainGroup } = require("../models/MainGroup");
 
-const addNewIssue = async (data, bot) => {
+const addNewEntity = async (data, bot, entity) => {
   const { message, from } = data;
   const { title: subGroupName, id: groupId } = message.chat;
   const CurrentSubGroup = await SubGroup.findOne({ groupId }).exec();
@@ -26,12 +24,16 @@ const addNewIssue = async (data, bot) => {
   const flowPrompts = [
     {
       key: "name",
-      prompt: "Enter issue name as a reply to this message",
+      prompt: `Enter ${entity.name} name as a reply to this message`,
     },
     {
       key: "criticalDate",
       prompt:
         "Enter critical date in string form as a reply to this message\nEnter . to skip entering date",
+    },
+    {
+      key: "assignee",
+      prompt: `Chose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
     },
   ];
 
@@ -39,6 +41,7 @@ const addNewIssue = async (data, bot) => {
   const values = await handleReplyFlow(flowPrompts, message, bot);
   const criticalDate =
     values.criticalDate.length > 3 ? values.criticalDate : null;
+  const entityAssignee = values.assignee.length > 3 ? values.assignee : null;
 
   const newIssue = new Issue({
     addedBy: from.username,
@@ -46,6 +49,7 @@ const addNewIssue = async (data, bot) => {
     addedDate: message.date,
     addedGroupName: subGroupName,
     name: values.name,
+    assignee: entityAssignee,
     criticalDate,
     mainGroupId,
     isOpen: true,
@@ -54,12 +58,13 @@ const addNewIssue = async (data, bot) => {
 
   newIssue
     .save()
-    .then(() => {
+    .then((r) => {
+      console.log(r);
       bot.sendMessage(
         groupId,
         `New issue registered as:\nTitle: ${values.name}\nCritical date: ${
           criticalDate || "Nil"
-        }\nIssueCode: ${issueCode}`
+        }\nIssueCode: ${issueCode}\nAssigned to: ${entityAssignee}`
       );
       bot.sendMessage(
         mainGroupId,
@@ -67,7 +72,7 @@ const addNewIssue = async (data, bot) => {
           from.username
         } as:\nTitle: ${values.name}\nCritical date: ${
           criticalDate || "Nil"
-        }\nIssue Code: ${issueCode}`
+        }\nIssue Code: ${issueCode}\nAssigned to: ${entityAssignee}`
       );
     })
     .catch((err) => {
@@ -79,7 +84,7 @@ const addNewIssue = async (data, bot) => {
     });
 };
 
-const listIssues = async ({ message }, bot) => {
+const listRecords = async ({ message }, bot) => {
   const { id: groupId } = message.chat;
   const isSubGroup = await SubGroup.findOne({ groupId }).exec();
   const groupQuery = isSubGroup
@@ -91,7 +96,7 @@ const listIssues = async ({ message }, bot) => {
 };
 
 // only for main groups
-const listFilteredIssues = async ({ message }, bot) => {
+const listFilteredRecords = async ({ message }, bot) => {
   const { id: groupId } = message.chat;
 
   const subGroupsUnderThisMainGroup = await SubGroup.find({
@@ -108,7 +113,7 @@ const listFilteredIssues = async ({ message }, bot) => {
   bot.sendMessage(groupId, "Choose group to display issues: ", keyboardOptions);
 };
 
-const updateIssue = async ({ message }, bot) => {
+const updateRecords = async ({ message }, bot) => {
   const { id: groupId } = message.chat;
   const issuesList = await Issue.find({
     addedGroupId: groupId,
@@ -124,4 +129,9 @@ const updateIssue = async ({ message }, bot) => {
   bot.sendMessage(groupId, "Choose issue to update: ", keyboardOptions);
 };
 
-module.exports = { addNewIssue, listIssues, updateIssue, listFilteredIssues };
+module.exports = {
+  addNewEntity,
+  listRecords,
+  updateRecords,
+  listFilteredRecords,
+};
