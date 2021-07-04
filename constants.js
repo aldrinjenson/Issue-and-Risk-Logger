@@ -6,6 +6,21 @@ const RISK = {
   label: "risk",
 };
 
+const IMPACT_CONSTANTS = {
+  HIGH: {
+    name: "high",
+    value: 1,
+  },
+  MED: {
+    name: "medium",
+    value: 0,
+  },
+  LOW: {
+    name: "low",
+    value: -1,
+  },
+};
+
 const entities = {
   issue: {
     name: "issue",
@@ -16,4 +31,4 @@ const entities = {
   action: {},
 };
 
-module.exports = { entities };
+module.exports = { entities, IMPACT_CONSTANTS };

@@ -19,7 +19,7 @@ const {
   listRecords,
   updateRecords,
   listFilteredRecords,
-} = require("./controller/issueController");
+} = require("./controller/entityController");
 const { entities } = require("./constants");
 
 ////////////////// fix for heroku hosting - start//////////////////
@@ -119,7 +119,6 @@ bot.onText(/\/issue|\/risk/, async (msg, match) => {
 });
 
 bot.on("callback_query", async (callbackQuery) => {
-  console.log(callbackQuery);
   const { data: action, message: msg } = callbackQuery;
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;

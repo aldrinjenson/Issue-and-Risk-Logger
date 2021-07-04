@@ -25,23 +25,32 @@ const addNewEntity = async (data, bot, entity) => {
     {
       key: "name",
       prompt: `Enter ${entity.name} name as a reply to this message`,
+      condition: (name) => name.length >= 4,
     },
     {
       key: "criticalDate",
       prompt:
         "Enter critical date in string form as a reply to this message\nEnter . to skip entering date",
+      condition: (date) => date === "." || date.length > 3,
     },
     {
       key: "assignee",
       prompt: `Chose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
+      condition: (userName) =>
+        userName === "." || (userName[0] === "@" && userName.length > 3),
     },
   ];
 
+  // const impactButtons = [
+  //   {
+  //     text: `High`,
+  //     onPress: (data, bot) => handleIssueUpdate(issue._id, data, bot),
+  //   },
+  // ];
+
   const issueCode = await getIssueIdFromSubGroupCode(groupId, groupCode);
   const values = await handleReplyFlow(flowPrompts, message, bot);
-  const criticalDate =
-    values.criticalDate.length > 3 ? values.criticalDate : null;
-  const entityAssignee = values.assignee.length > 3 ? values.assignee : null;
+  console.log({ values });
 
   const newIssue = new Issue({
     addedBy: from.username,
@@ -49,8 +58,8 @@ const addNewEntity = async (data, bot, entity) => {
     addedDate: message.date,
     addedGroupName: subGroupName,
     name: values.name,
-    assignee: entityAssignee,
-    criticalDate,
+    assignee: values.assignee || null,
+    criticalDate: values.criticalDate || null,
     mainGroupId,
     isOpen: true,
     issueCode,

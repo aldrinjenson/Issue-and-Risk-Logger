@@ -1,7 +1,7 @@
+/* eslint-disable no-prototype-builtins */
 const { MainGroup } = require("../models/MainGroup");
 
 const callBackKeys = {};
-
 // custom wrapper to make inline keyboards with callback easy
 const handleButtons = (rows) => {
   const isSingleLinedBetter = rows.length > 3; // if more than 3 items shows up, then show them in separate lines to prevent congestion
@@ -59,13 +59,25 @@ const handleReplyFlow = (promptsList, message, bot) =>
         resolve(values); // when finished asking all the prompts from list
         return;
       }
-      const cb = (msg) => {
+      const cb = async (msg) => {
         // called from index.js when a reply has been received
-        const { key } = prompts[0];
         const val = msg.text;
-        values[key] = val;
-        prompts.shift(); // removing the first question after the user has given the answer to it
-        handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
+        if (
+          prompts[0].hasOwnProperty("condition") &&
+          !prompts[0].condition(val)
+        ) {
+          // if the user inputs an invalid value, ask him to enter again
+          await bot.sendMessage(
+            message.chat.id,
+            "Invalid entry. Please verify and try again"
+          );
+          handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
+        } else {
+          const { key } = prompts[0];
+          values[key] = val;
+          prompts.shift(); // removing the first question after the user has given the answer to it
+          handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
+        }
       };
       bot.sendMessage(message.chat.id, prompts[0].prompt).then((sentMsg) => {
         handleReplyMessage(sentMsg.message_id, cb);
