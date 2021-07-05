@@ -2,17 +2,17 @@ const { SubGroup } = require("../models/SubGroup");
 
 const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
   return new Promise((resolve) => {
+    let words = newSubGroupName.split(" ");
+    // for accounting to groups which may have a single word
     let code =
-      newSubGroupName[0] +
-      newSubGroupName[1] +
-      newSubGroupName[newSubGroupName.length - 1];
+      words[0][0] +
+      (words[1]?.[0] || newSubGroupName[newSubGroupName.length - 1]);
 
     SubGroup.find({ mainGroupId }, (err, subGroups) => {
       if (err) {
         console.log("err" + err);
         return;
       }
-
       const allSubGroupsCodes = subGroups.map((grp) => grp.groupCode);
       let index = 2;
       //  add a numeral at the end if the codes match
@@ -23,7 +23,6 @@ const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
         }
         checkAndUpdateCode(newCode + index++);
       };
-
       checkAndUpdateCode(code.toUpperCase());
     });
   });

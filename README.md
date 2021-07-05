@@ -1,4 +1,4 @@
-# ISSUE-LOGGER-BOT
+# Issue & Risk Logger Bot
 
 - telegram bot to easily log issue and tasks between groups.
 - best suited for construction companies to easily streamline tasks and view the lists of issues and tasks in one place

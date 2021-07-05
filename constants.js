@@ -1,10 +1,6 @@
-const ISSUE = {
-  label: "issue",
-};
-
-const RISK = {
-  label: "risk",
-};
+const { Action } = require("./models/Action");
+const { Issue } = require("./models/Issue");
+const { Risk } = require("./models/Risk");
 
 const IMPACT_CONSTANTS = {
   HIGH: {
@@ -24,11 +20,22 @@ const IMPACT_CONSTANTS = {
 const entities = {
   issue: {
     name: "issue",
+    label: "Issue",
+    Model: Issue,
+    shouldLogToMainGroup: true,
   },
   risk: {
     name: "risk",
+    label: "Risk",
+    Model: Risk,
+    shouldLogToMainGroup: true,
   },
-  action: {},
+  action: {
+    name: "action",
+    label: "Action",
+    Model: Action,
+    shouldLogToMainGroup: false,
+  },
 };
 
 module.exports = { entities, IMPACT_CONSTANTS };

@@ -23,6 +23,7 @@ const {
 const { entities } = require("./constants");
 
 ////////////////// fix for heroku hosting - start//////////////////
+// can be removed when hosting in a vps
 const requestListener = function (req, res) {
   res.writeHead(200);
   res.end("Bot active\nCurrent Time: " + new Date());
@@ -31,6 +32,7 @@ const server = http.createServer(requestListener);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log("server listening"));
 ////////////////// fix for heroku hosting - end//////////////////
+
 let bot = null;
 bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
@@ -77,7 +79,7 @@ bot.onText(/\/register/, async (msg) => {
   bot.sendMessage(chatId, "Choose group type", keyboardOptions);
 });
 
-bot.onText(/\/issue|\/risk/, async (msg, match) => {
+bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
@@ -123,7 +125,7 @@ bot.on("callback_query", async (callbackQuery) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  console.log({ action });
+  // console.log({ action });
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (action === key) {

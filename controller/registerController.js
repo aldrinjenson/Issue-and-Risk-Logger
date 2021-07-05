@@ -31,7 +31,7 @@ const registerAsMainGroup = async (data, bot) => {
   };
   const newGroup = new MainGroup(obj);
   newGroup.save().then(() => {
-    bot.editMessageText(`${message.chat.title} registerd as main group`, {
+    bot.editMessageText(`"${message.chat.title}" registered as main group`, {
       chat_id: groupId,
       message_id: message.message_id,
     });

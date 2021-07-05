@@ -1,12 +1,11 @@
 const { SubGroup } = require("../models/SubGroup");
-const { Issue } = require("../models/Issue");
 const { handleReplyFlow, handleButtons } = require("../utils/common");
 const {
-  handleIssueUpdate,
-  getIssueIdFromSubGroupCode,
+  handleRecordUpdate,
+  getRecordId,
   handleGroupFilter,
-  handleListIssues,
-} = require("../utils/issueUtils");
+  handleListRecords,
+} = require("../utils/entityUtils");
 
 const addNewEntity = async (data, bot, entity) => {
   const { message, from } = data;
@@ -44,71 +43,81 @@ const addNewEntity = async (data, bot, entity) => {
   // const impactButtons = [
   //   {
   //     text: `High`,
-  //     onPress: (data, bot) => handleIssueUpdate(issue._id, data, bot),
+  //     onPress: (data, bot) => handleRecordUpdate(record._id, data, bot),
   //   },
   // ];
 
-  const issueCode = await getIssueIdFromSubGroupCode(groupId, groupCode);
+  // rename recordId to recordCode everywhere?
+
+  const recordId = await getRecordId(groupId, groupCode, entity);
   const values = await handleReplyFlow(flowPrompts, message, bot);
   console.log({ values });
-  const { assignee, criticalDate } = values;
+  let { assignee, criticalDate } = values;
+  assignee = assignee === "." ? null : assignee;
+  criticalDate = criticalDate === "." ? null : criticalDate;
+  console.log({ assignee, criticalDate });
 
-  const newIssue = new Issue({
+  const newRecord = new entity.Model({
     addedBy: from.username,
     addedGroupId: groupId,
     addedDate: message.date,
     addedGroupName: subGroupName,
     name: values.name,
-    assignee: assignee || null,
-    criticalDate: criticalDate || null,
+    assignee: assignee,
+    criticalDate: criticalDate,
     mainGroupId,
     isOpen: true,
-    issueCode,
+    recordId,
   });
 
-  newIssue
+  newRecord
     .save()
     .then((r) => {
-      console.log(r);
+      console.log({ r });
       bot.sendMessage(
         groupId,
-        `New issue registered as:\nTitle: ${values.name}\nCritical date: ${
-          criticalDate || "Nil"
-        }\nIssueCode: ${issueCode}\nAssigned to: ${assignee}`
+        `New ${entity.name} registered as:\nTitle: ${
+          values.name
+        }\nCritical date: ${criticalDate || "Nil"}\n${
+          entity.name
+        } ID: ${recordId}\nAssigned to: ${assignee}`
       );
-      bot.sendMessage(
-        mainGroupId,
-        `New issue registered in ${subGroupName} by @${
-          from.username
-        } as:\nTitle: ${values.name}\nCritical date: ${
-          criticalDate || "Nil"
-        }\nIssue Code: ${issueCode}\nAssigned to: ${assignee}`
-      );
+      if (entity.shouldLogToMainGroup) {
+        bot.sendMessage(
+          mainGroupId,
+          `New "${entity.label}" registered in "${subGroupName}" by @${
+            from.username
+          } as:\nName: ${values.name}\n${
+            entity.name
+          } ID: ${recordId}\nAssigned to: ${assignee || "nil"}
+          \nCritical date: ${criticalDate || "Nil"}`
+        );
+      }
     })
     .catch((err) => {
       console.log("error in saving" + err);
       bot.sendMessage(
         groupId,
-        "Error in saving issue. Ensure you have entered values correctly and try again"
+        `Error in saving ${entity.name}. Ensure you have entered values correctly and try again`
       );
     });
 };
 
-const listRecords = async ({ message }, bot) => {
+const listRecords = async ({ message }, bot, entity) => {
   const { id: groupId } = message.chat;
   const isSubGroup = await SubGroup.findOne({ groupId }).exec();
   const groupQuery = isSubGroup
     ? { addedGroupId: groupId }
     : { mainGroupId: groupId };
 
-  const issuesList = await Issue.find({ ...groupQuery, isOpen: true })
-    .sort("issueCode")
+  const recordsList = await entity.Model.find({ ...groupQuery, isOpen: true })
+    .sort("recordId")
     .exec();
-  handleListIssues(issuesList, bot, message, isSubGroup);
+  handleListRecords(recordsList, bot, message, isSubGroup, entity);
 };
 
 // only for main groups
-const listFilteredRecords = async ({ message }, bot) => {
+const listFilteredRecords = async ({ message }, bot, entity) => {
   const { id: groupId } = message.chat;
 
   const subGroupsUnderThisMainGroup = await SubGroup.find({
@@ -120,27 +129,35 @@ const listFilteredRecords = async ({ message }, bot) => {
   const buttons = subGroupsUnderThisMainGroup.map((grp) => ({
     text: `${grp.groupCode} - ${grp.groupName}`,
     onPress: async (data, bot) =>
-      await handleGroupFilter(grp.groupId, data, bot),
+      await handleGroupFilter(grp.groupId, data, bot, entity),
   }));
 
   const keyboardOptions = handleButtons(buttons);
-  bot.sendMessage(groupId, "Choose group to display issues: ", keyboardOptions);
+  bot.sendMessage(
+    groupId,
+    `Choose group to display ${entity.name}s: `,
+    keyboardOptions
+  );
 };
 
-const updateRecords = async ({ message }, bot) => {
+const updateRecords = async ({ message }, bot, entity) => {
   const { id: groupId } = message.chat;
-  const issuesList = await Issue.find({
+  const recordsList = await entity.Model.find({
     addedGroupId: groupId,
     isOpen: true,
   }).exec();
 
-  const buttons = issuesList.map((issue, index) => ({
-    text: `${index + 1}. ${issue.name}`,
-    onPress: (data, bot) => handleIssueUpdate(issue._id, data, bot),
+  const buttons = recordsList.map((record, index) => ({
+    text: `${index + 1}. ${record.name}`,
+    onPress: (data, bot) => handleRecordUpdate(record._id, data, bot, entity),
   }));
 
   const keyboardOptions = handleButtons(buttons);
-  bot.sendMessage(groupId, "Choose issue to update: ", keyboardOptions);
+  bot.sendMessage(
+    groupId,
+    `Choose ${entity.name} to update: `,
+    keyboardOptions
+  );
 };
 
 module.exports = {

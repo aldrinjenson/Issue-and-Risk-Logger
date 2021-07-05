@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const IssueSchema = new Schema(
+const RiskSchema = new Schema(
   {
     name: {
       type: String,
@@ -51,5 +51,5 @@ const IssueSchema = new Schema(
   { timestamps: true }
 );
 
-const Issue = mongoose.model("Issue", IssueSchema);
-module.exports = { Issue };
+const Risk = mongoose.model("Risk", RiskSchema);
+module.exports = { Risk };
