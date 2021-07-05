@@ -13,7 +13,7 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
       record.assignee || "nil"
     }\n    Status: ${status}\n    Impact: ${
       record.impact
-    }\n    Status: ${status}`;
+    }\n    Status: ${status}\n`;
 
     // adding 4 spaces before each new line for nice formatting :)
     if (!isSubGroup) {
@@ -50,7 +50,7 @@ const handleGroupFilter = async (selectedGroupId, { message }, bot, entity) => {
     addedGroupId: selectedGroupId,
     isOpen: true,
   })
-    .sort("recordId")
+    .sort("createdAt")
     .exec();
   handleListRecords(records, bot, message, false, entity);
 };
@@ -102,16 +102,38 @@ const transformStatusToBooelan = (val = "") => {
 
 const sendUpdateSuccessMsg = (label, record, groupId, msg, entity, bot) => {
   const status = record.isOpen ? "Open" : "Closed";
-  const updateSuccessReply = `${record.name}\n${entity.name} ID: ${record.recordId}\nCritical Date: ${record.criticalDate}\nImpact: ${record.impact}\nStatus: ${status} `;
+  const updateSuccessReply = `${record.name}\n${entity.name} ID: ${
+    record.recordId
+  }\nCritical Date: ${record.criticalDate || "nil"}\nImpact: ${
+    record.impact
+  }\nStatus: ${status} `;
+
   bot.sendMessage(
     groupId,
     `${label} has been updated successfully\n\nUpdated ${entity.name}:\n${updateSuccessReply}`
   );
-  if (entity.shouldLogToMainGroup) {
+  if (entity.shouldShowInMainGroup) {
     bot.sendMessage(
       record.mainGroupId,
       `${label} has been updated for "${record.name}" in "${record.addedGroupName}" by @${msg.from.username}\n\nUpdated record: ${updateSuccessReply}`
     );
+  }
+};
+
+const handleValidateAndTransform = (key, val) => {
+  switch (key) {
+    case "isOpen":
+      return transformStatusToBooelan(val);
+    case "assignee":
+      return val === "." || (val[0] === "@" && val.split(" ").length === 1)
+        ? val
+        : -1;
+    case "impact":
+      return ["high", "med", "low"].includes(val.toLowerCase())
+        ? val.toLowerCase()
+        : -1;
+    case "criticalDate":
+      return val === "." || val.length > 3;
   }
 };
 
@@ -126,8 +148,16 @@ const handleUpdateField = (key, label, { recordId, groupId, bot, entity }) => {
 
   // function for updating db
   const onFieldUpdate = (msg, bot) => {
-    const val =
-      key === "isOpen" ? transformStatusToBooelan(msg.text) : msg.text;
+    const val = handleValidateAndTransform(key, msg.text);
+    // const val =
+    //   key === "isOpen" ? transformStatusToBooelan(msg.text) : msg.text;
+    // validate and transform input
+    // let val = msg.text;
+    // switch (key) {
+    //   case "isOpen":
+    //     val = transformStatusToBooelan(val);
+    //     case 'assignee'
+    // }
     if (val === -1) {
       handleError("Wrong input");
       return;

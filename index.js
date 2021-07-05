@@ -8,7 +8,7 @@ const {
   callBackKeys,
   handleIsFromPrivateMessage,
   messageReplyPairs,
-  isMainGroup,
+  checkIfMainGroup,
   optionButtonsKeys,
 } = require("./utils/common");
 const {
@@ -66,7 +66,7 @@ bot.onText(/\/register/, async (msg) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  const chatId = msg.chat.id;
+  const groupId = msg.chat.id;
   const keyboardOptions = handleButtons([
     {
       text: "Register as main group",
@@ -77,7 +77,7 @@ bot.onText(/\/register/, async (msg) => {
       onPress: registerAsSubGroup,
     },
   ]);
-  bot.sendMessage(chatId, "Choose group type", keyboardOptions);
+  bot.sendMessage(groupId, "Choose group type", keyboardOptions);
 });
 
 bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
@@ -87,11 +87,29 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   const command = match[0].split(" ")[0].slice(1);
   const entity = entities[command];
   const { id: groupId } = msg.chat;
-  const isSubGroup = !(await isMainGroup(groupId));
-  const chatId = msg.chat.id;
+  const isMainGroup = await checkIfMainGroup(groupId);
 
-  const buttons = isSubGroup
+  if (isMainGroup && !entity.shouldShowInMainGroup) {
+    // to prevent actions etc from showing in main groups
+    bot.sendMessage(
+      groupId,
+      `${entity.name}s are available only in subgroups :)`
+    );
+    return;
+  }
+
+  const buttons = isMainGroup
     ? [
+        {
+          text: `List ${entity.name}s`,
+          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
+        },
+        {
+          text: `Filtered ${entity.name}s`,
+          onPress: (cbQuery, bot) => listFilteredRecords(cbQuery, bot, entity),
+        },
+      ]
+    : [
         {
           text: `Add new ${entity.name}`,
           onPress: (cbQuery, bot) => addNewEntity(cbQuery, bot, entity),
@@ -104,42 +122,29 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
           text: `Update ${entity.name}`,
           onPress: (cbQuery, bot) => updateRecords(cbQuery, bot, entity),
         },
-      ]
-    : [
-        {
-          text: `List ${entity.name}s`,
-          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
-        },
-        {
-          text: `Filtered ${entity.name}s`,
-          onPress: (cbQuery, bot) => listFilteredRecords(cbQuery, bot, entity),
-        },
       ];
 
   const keyboardOptions = handleButtons(buttons);
-  bot.sendMessage(chatId, "Choose option:", keyboardOptions);
+  bot.sendMessage(groupId, "Choose option:", keyboardOptions);
 });
 
 bot.on("callback_query", async (callbackQuery) => {
-  console.log({ callbackQuery });
+  // console.log({ callbackQuery });
   const { data: selectedVal, message: msg } = callbackQuery;
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  console.log(callbackQuery);
-
   Object.entries(optionButtonsKeys)?.forEach(([key, val]) => {
     if (callbackQuery.message.text === key) {
-      console.log("yeah");
       val(callbackQuery, bot);
-      // delete callBackKeys[key];
+      delete callBackKeys[key];
     }
   });
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (selectedVal === key) {
       val(callbackQuery, bot);
-      // delete callBackKeys[key];
+      delete callBackKeys[key];
     }
   });
 });

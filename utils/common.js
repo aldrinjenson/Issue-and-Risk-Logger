@@ -7,7 +7,7 @@ const getInlineButtonInput = async (
   buttonRows,
   prompt,
   bot,
-  shouldDeleteMsgAfterInput = true
+  shouldDeleteMsgAfterInput // = true
 ) =>
   new Promise((resolve) => {
     {
@@ -28,6 +28,7 @@ const getInlineButtonInput = async (
       });
       const keyboardOptions = {
         reply_markup: {
+          // change keyboard to normal one
           inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
         },
       };
@@ -56,7 +57,7 @@ const handleButtons = (rows) => {
   };
 };
 
-const isMainGroup = (groupId) =>
+const checkIfMainGroup = (groupId) =>
   new Promise((resolve) => {
     MainGroup.find({ groupId }, (err, data) => {
       if (err) {
@@ -89,6 +90,7 @@ const handleReplyMessage = (msgId, callBack) => {
 // function to easily get answers to a set of ordered prompts
 const handleReplyFlow = (promptsList, message, bot) =>
   new Promise((resolve) => {
+    // console.log({ message });
     const values = {};
     const handleFlow = (prompts) => {
       if (!prompts.length) {
@@ -131,5 +133,5 @@ module.exports = {
   messageReplyPairs,
   handleReplyMessage,
   handleReplyFlow,
-  isMainGroup,
+  checkIfMainGroup,
 };

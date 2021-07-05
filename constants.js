@@ -22,19 +22,19 @@ const entities = {
     name: "issue",
     label: "Issue",
     Model: Issue,
-    shouldLogToMainGroup: true,
+    shouldShowInMainGroup: true,
   },
   risk: {
     name: "risk",
     label: "Risk",
     Model: Risk,
-    shouldLogToMainGroup: true,
+    shouldShowInMainGroup: true,
   },
   action: {
     name: "action",
     label: "Action",
     Model: Action,
-    shouldLogToMainGroup: false,
+    shouldShowInMainGroup: false,
   },
 };
 

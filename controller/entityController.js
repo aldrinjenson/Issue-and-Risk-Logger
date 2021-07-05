@@ -40,7 +40,8 @@ const addNewEntity = async (data, bot, entity) => {
       key: "assignee",
       prompt: `Choose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
       condition: (userName) =>
-        userName === "." || (userName[0] === "@" && userName.length > 3),
+        userName === "." ||
+        (userName[0] === "@" && userName.split(" ").length === 3),
     },
   ];
   const impactButtons = [
@@ -57,20 +58,20 @@ const addNewEntity = async (data, bot, entity) => {
       val: "low",
     },
   ];
-  const impact = await getInlineButtonInput(
-    groupId,
-    impactButtons,
-    `Choose impact/severity of ${entity.name}: `,
-    bot
-  );
-  const recordId = await getRecordId(groupId, groupCode, entity);
-  const values = await handleReplyFlow(flowPrompts, message, bot);
   // const impact = await getInlineButtonInput(
   //   groupId,
   //   impactButtons,
   //   `Choose impact/severity of ${entity.name}: `,
   //   bot
   // );
+  const recordId = await getRecordId(groupId, groupCode, entity);
+  const values = await handleReplyFlow(flowPrompts, message, bot);
+  const impact = await getInlineButtonInput(
+    groupId,
+    impactButtons,
+    `Choose impact/severity of ${entity.name}: `,
+    bot
+  );
   let { assignee, criticalDate } = values;
   assignee = assignee === "." ? null : assignee;
   criticalDate = criticalDate === "." ? null : criticalDate;
@@ -104,15 +105,16 @@ const addNewEntity = async (data, bot, entity) => {
           criticalDate || "Nil"
         }\nImpact: ${impact}`
       );
-      if (entity.shouldLogToMainGroup) {
+      if (entity.shouldShowInMainGroup) {
         bot.sendMessage(
           mainGroupId,
-          `New "${entity.label}" registered in "${subGroupName}" by @${
+          `New ${entity.label} registered in "${subGroupName}" by @${
             from.username
           } as:\nName: ${values.name}\n${
             entity.name
-          } ID: ${recordId}\nAssigned to: ${assignee || "nil"}
-          \nCritical date: ${criticalDate || "Nil"}`
+          } ID: ${recordId}\nAssigned to: ${
+            assignee || "nil"
+          }\nCritical date: ${criticalDate || "Nil"}\nImpact: ${impact}`
         );
       }
     })
@@ -133,7 +135,7 @@ const listRecords = async ({ message }, bot, entity) => {
     : { mainGroupId: groupId };
 
   const recordsList = await entity.Model.find({ ...groupQuery, isOpen: true })
-    .sort("recordId")
+    .sort("createdAt")
     .exec();
   handleListRecords(recordsList, bot, message, isSubGroup, entity);
 };
@@ -169,8 +171,8 @@ const updateRecords = async ({ message }, bot, entity) => {
     isOpen: true,
   }).exec();
 
-  const buttons = recordsList.map((record, index) => ({
-    text: `${index + 1}. ${record.name}`,
+  const buttons = recordsList.map((record) => ({
+    text: `${record.recordId}: ${record.name}`,
     onPress: (data, bot) => handleRecordUpdate(record._id, data, bot, entity),
   }));
 
