@@ -2,7 +2,7 @@ const { SubGroup } = require("../models/SubGroup");
 const {
   handleReplyFlow,
   handleButtons,
-  getInlineButtonInput,
+  getButtonChooserValue,
 } = require("../utils/common");
 const {
   handleRecordUpdate,
@@ -58,23 +58,18 @@ const addNewEntity = async (data, bot, entity) => {
       val: "low",
     },
   ];
-  // const impact = await getInlineButtonInput(
-  //   groupId,
-  //   impactButtons,
-  //   `Choose impact/severity of ${entity.name}: `,
-  //   bot
-  // );
+
   const recordId = await getRecordId(groupId, groupCode, entity);
   const values = await handleReplyFlow(flowPrompts, message, bot);
-  const impact = await getInlineButtonInput(
+  let { assignee, criticalDate } = values;
+  assignee = assignee === "." ? null : assignee;
+  criticalDate = criticalDate === "." ? null : criticalDate;
+  const impact = await getButtonChooserValue(
     groupId,
     impactButtons,
     `Choose impact/severity of ${entity.name}: `,
     bot
   );
-  let { assignee, criticalDate } = values;
-  assignee = assignee === "." ? null : assignee;
-  criticalDate = criticalDate === "." ? null : criticalDate;
 
   const newRecord = new entity.Model({
     name: values.name,
@@ -95,8 +90,7 @@ const addNewEntity = async (data, bot, entity) => {
 
   newRecord
     .save()
-    .then((r) => {
-      console.log({ r });
+    .then(() => {
       bot.sendMessage(
         groupId,
         `New ${entity.name} registered as:\nTitle: ${values.name}\n${

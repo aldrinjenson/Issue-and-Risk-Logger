@@ -9,7 +9,6 @@ const {
   handleIsFromPrivateMessage,
   messageReplyPairs,
   checkIfMainGroup,
-  optionButtonsKeys,
 } = require("./utils/common");
 const {
   registerAsMainGroup,
@@ -129,17 +128,10 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
 });
 
 bot.on("callback_query", async (callbackQuery) => {
-  // console.log({ callbackQuery });
   const { data: selectedVal, message: msg } = callbackQuery;
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  Object.entries(optionButtonsKeys)?.forEach(([key, val]) => {
-    if (callbackQuery.message.text === key) {
-      val(callbackQuery, bot);
-      delete callBackKeys[key];
-    }
-  });
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (selectedVal === key) {

@@ -1,40 +1,30 @@
 /* eslint-disable no-prototype-builtins */
 const { MainGroup } = require("../models/MainGroup");
 
-const optionButtonsKeys = {};
-const getInlineButtonInput = async (
-  groupId,
-  buttonRows,
-  prompt,
-  bot,
-  shouldDeleteMsgAfterInput // = true
-) =>
+const messageReplyPairs = {};
+const handleReplyMessage = (msgId, callBack) => {
+  messageReplyPairs[msgId] = callBack;
+};
+
+const getButtonChooserValue = async (groupId, buttonRows, prompt, bot) =>
   new Promise((resolve) => {
     {
-      const cb = (query, bot) => {
-        console.log(query);
-        const { message_id } = query.message;
-        if (shouldDeleteMsgAfterInput) {
-          bot.deleteMessage(groupId, message_id);
-        }
-        resolve(query.data);
+      const cb = (msg) => {
+        const selectedVal = msg.text;
+        resolve(selectedVal);
       };
-      const isSingleLinedBetter = buttonRows.length > 3; // if more than 3 items shows up, then show them in separate lines to prevent congestion
       const markupRows = buttonRows.map((row) => {
-        // const key = row.val;
-        // optionButtonsKeys[key] = cb;
-        const keyBoardRow = { text: row.text, callback_data: row.val };
-        return isSingleLinedBetter ? [keyBoardRow] : keyBoardRow;
+        return { text: row.text, callback_data: row.val };
       });
       const keyboardOptions = {
         reply_markup: {
-          // change keyboard to normal one
-          inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
+          keyboard: [markupRows],
+          resize_keyboard: true,
+          one_time_keyboard: true,
         },
       };
       bot.sendMessage(groupId, prompt, keyboardOptions).then((sentMsg) => {
-        console.log(sentMsg.text);
-        optionButtonsKeys[sentMsg.text] = cb;
+        handleReplyMessage(sentMsg.message_id, cb);
       });
     }
   });
@@ -82,11 +72,6 @@ const handleIsFromPrivateMessage = async (msg, bot) => {
   return false;
 };
 
-const messageReplyPairs = {};
-const handleReplyMessage = (msgId, callBack) => {
-  messageReplyPairs[msgId] = callBack;
-};
-
 // function to easily get answers to a set of ordered prompts
 const handleReplyFlow = (promptsList, message, bot) =>
   new Promise((resolve) => {
@@ -126,8 +111,7 @@ const handleReplyFlow = (promptsList, message, bot) =>
 
 module.exports = {
   callBackKeys,
-  optionButtonsKeys,
-  getInlineButtonInput,
+  getButtonChooserValue,
   handleButtons,
   handleIsFromPrivateMessage,
   messageReplyPairs,
