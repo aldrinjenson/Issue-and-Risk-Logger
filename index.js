@@ -9,6 +9,7 @@ const {
   handleIsFromPrivateMessage,
   messageReplyPairs,
   isMainGroup,
+  optionButtonsKeys,
 } = require("./utils/common");
 const {
   registerAsMainGroup,
@@ -85,7 +86,6 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   }
   const command = match[0].split(" ")[0].slice(1);
   const entity = entities[command];
-  console.log(entity);
   const { id: groupId } = msg.chat;
   const isSubGroup = !(await isMainGroup(groupId));
   const chatId = msg.chat.id;
@@ -121,14 +121,23 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
 });
 
 bot.on("callback_query", async (callbackQuery) => {
-  const { data: action, message: msg } = callbackQuery;
+  console.log({ callbackQuery });
+  const { data: selectedVal, message: msg } = callbackQuery;
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  // console.log({ action });
+  console.log(callbackQuery);
+
+  Object.entries(optionButtonsKeys)?.forEach(([key, val]) => {
+    if (callbackQuery.message.text === key) {
+      console.log("yeah");
+      val(callbackQuery, bot);
+      // delete callBackKeys[key];
+    }
+  });
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
-    if (action === key) {
+    if (selectedVal === key) {
       val(callbackQuery, bot);
       // delete callBackKeys[key];
     }

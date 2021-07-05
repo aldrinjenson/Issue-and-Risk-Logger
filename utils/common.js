@@ -1,6 +1,43 @@
 /* eslint-disable no-prototype-builtins */
 const { MainGroup } = require("../models/MainGroup");
 
+const optionButtonsKeys = {};
+const getInlineButtonInput = async (
+  groupId,
+  buttonRows,
+  prompt,
+  bot,
+  shouldDeleteMsgAfterInput = true
+) =>
+  new Promise((resolve) => {
+    {
+      const cb = (query, bot) => {
+        console.log(query);
+        const { message_id } = query.message;
+        if (shouldDeleteMsgAfterInput) {
+          bot.deleteMessage(groupId, message_id);
+        }
+        resolve(query.data);
+      };
+      const isSingleLinedBetter = buttonRows.length > 3; // if more than 3 items shows up, then show them in separate lines to prevent congestion
+      const markupRows = buttonRows.map((row) => {
+        // const key = row.val;
+        // optionButtonsKeys[key] = cb;
+        const keyBoardRow = { text: row.text, callback_data: row.val };
+        return isSingleLinedBetter ? [keyBoardRow] : keyBoardRow;
+      });
+      const keyboardOptions = {
+        reply_markup: {
+          inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
+        },
+      };
+      bot.sendMessage(groupId, prompt, keyboardOptions).then((sentMsg) => {
+        console.log(sentMsg.text);
+        optionButtonsKeys[sentMsg.text] = cb;
+      });
+    }
+  });
+
 const callBackKeys = {};
 // custom wrapper to make inline keyboards with callback easy
 const handleButtons = (rows) => {
@@ -86,8 +123,10 @@ const handleReplyFlow = (promptsList, message, bot) =>
   });
 
 module.exports = {
-  handleButtons,
   callBackKeys,
+  optionButtonsKeys,
+  getInlineButtonInput,
+  handleButtons,
   handleIsFromPrivateMessage,
   messageReplyPairs,
   handleReplyMessage,

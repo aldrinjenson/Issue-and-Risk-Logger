@@ -7,6 +7,10 @@ const ActionSchema = new Schema(
       type: String,
       required: true,
     },
+    type: {
+      type: String,
+      required: true,
+    },
     addedBy: {
       type: String,
       required: true,
@@ -43,10 +47,10 @@ const ActionSchema = new Schema(
       type: String,
       required: true,
     },
-    // impact: {
-    //   type: Number,
-    //   required: true,
-    // },
+    impact: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

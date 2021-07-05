@@ -1,5 +1,9 @@
 const { SubGroup } = require("../models/SubGroup");
-const { handleReplyFlow, handleButtons } = require("../utils/common");
+const {
+  handleReplyFlow,
+  handleButtons,
+  getInlineButtonInput,
+} = require("../utils/common");
 const {
   handleRecordUpdate,
   getRecordId,
@@ -34,41 +38,59 @@ const addNewEntity = async (data, bot, entity) => {
     },
     {
       key: "assignee",
-      prompt: `Chose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
+      prompt: `Choose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
       condition: (userName) =>
         userName === "." || (userName[0] === "@" && userName.length > 3),
     },
   ];
-
-  // const impactButtons = [
-  //   {
-  //     text: `High`,
-  //     onPress: (data, bot) => handleRecordUpdate(record._id, data, bot),
-  //   },
-  // ];
-
-  // rename recordId to recordCode everywhere?
-
+  const impactButtons = [
+    {
+      text: `High`,
+      val: "high",
+    },
+    {
+      text: `Medium`,
+      val: "medium",
+    },
+    {
+      text: `Low`,
+      val: "low",
+    },
+  ];
+  const impact = await getInlineButtonInput(
+    groupId,
+    impactButtons,
+    `Choose impact/severity of ${entity.name}: `,
+    bot
+  );
   const recordId = await getRecordId(groupId, groupCode, entity);
   const values = await handleReplyFlow(flowPrompts, message, bot);
-  console.log({ values });
+  // const impact = await getInlineButtonInput(
+  //   groupId,
+  //   impactButtons,
+  //   `Choose impact/severity of ${entity.name}: `,
+  //   bot
+  // );
   let { assignee, criticalDate } = values;
   assignee = assignee === "." ? null : assignee;
   criticalDate = criticalDate === "." ? null : criticalDate;
-  console.log({ assignee, criticalDate });
 
   const newRecord = new entity.Model({
+    name: values.name,
+    type: entity.name,
     addedBy: from.username,
     addedGroupId: groupId,
     addedDate: message.date,
     addedGroupName: subGroupName,
-    name: values.name,
     assignee: assignee,
     criticalDate: criticalDate,
     mainGroupId,
     isOpen: true,
     recordId,
+    impact,
   });
+
+  // const stri
 
   newRecord
     .save()
@@ -76,11 +98,11 @@ const addNewEntity = async (data, bot, entity) => {
       console.log({ r });
       bot.sendMessage(
         groupId,
-        `New ${entity.name} registered as:\nTitle: ${
-          values.name
-        }\nCritical date: ${criticalDate || "Nil"}\n${
+        `New ${entity.name} registered as:\nTitle: ${values.name}\n${
           entity.name
-        } ID: ${recordId}\nAssigned to: ${assignee}`
+        } ID: ${recordId}\nAssigned to: ${assignee || "nil"}\nCritical date: ${
+          criticalDate || "Nil"
+        }\nImpact: ${impact}`
       );
       if (entity.shouldLogToMainGroup) {
         bot.sendMessage(

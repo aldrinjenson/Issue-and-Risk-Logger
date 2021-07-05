@@ -9,7 +9,11 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
       record.recordId
     }\n    Critical Date: ${record.criticalDate || "nil"}\n    Added by @${
       record.addedBy
-    }\n    Assigned to: ${record.assignee || "nil"}\n    Status: ${status}\n`;
+    }\n    Assigned to: ${
+      record.assignee || "nil"
+    }\n    Status: ${status}\n    Impact: ${
+      record.impact
+    }\n    Status: ${status}`;
 
     // adding 4 spaces before each new line for nice formatting :)
     if (!isSubGroup) {
@@ -98,10 +102,10 @@ const transformStatusToBooelan = (val = "") => {
 
 const sendUpdateSuccessMsg = (label, record, groupId, msg, entity, bot) => {
   const status = record.isOpen ? "Open" : "Closed";
-  const updateSuccessReply = `${record.name}\n${entity.name} ID: ${record.recordId}\nCritical Date: ${record.criticalDate}\nStatus: ${status} `;
+  const updateSuccessReply = `${record.name}\n${entity.name} ID: ${record.recordId}\nCritical Date: ${record.criticalDate}\nImpact: ${record.impact}\nStatus: ${status} `;
   bot.sendMessage(
     groupId,
-    `${label} has been updated successfully\n\nUpdated record:\n${updateSuccessReply}`
+    `${label} has been updated successfully\n\nUpdated ${entity.name}:\n${updateSuccessReply}`
   );
   if (entity.shouldLogToMainGroup) {
     bot.sendMessage(
@@ -173,6 +177,10 @@ const handleRecordUpdate = (
     {
       text: "Critical Date",
       onPress: () => handleUpdateField("criticalDate", "Critical Date", opts),
+    },
+    {
+      text: "Impact",
+      onPress: () => handleUpdateField("impact", "Impact", opts),
     },
     {
       text: "Status",
