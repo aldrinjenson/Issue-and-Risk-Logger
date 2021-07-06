@@ -13,11 +13,11 @@
 - Paste the unique code/otp received from the main group.
   Now the groups are connected. Issues and tasks logged in subgroup can now be visible in the main group.
 
-## How to log issues
+## Commands available
 
-Note that issues and tasks can be logged only from the subgroups
-
-- Enter the /log command which will ask you to enter the issue
-- Enter in the issue as a reply to this prompt.
-- If successful, you will get a reply confirming success.
-- This message will immediately be forwarded to the main group for review
+- /start
+- /help
+- /issue
+- /risk
+- /action
+- /register

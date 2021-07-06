@@ -108,6 +108,11 @@ const updateRecords = async ({ message }, bot, entity) => {
     isOpen: true,
   }).exec();
 
+  if (!recordsList.length) {
+    bot.sendMessage(groupId, `Not ${entity.name} added to update`);
+    return;
+  }
+
   const buttons = recordsList.map((record) => ({
     text: `${record.recordId}: ${record.name}`,
     onPress: (data, bot) => handleRecordUpdate(record._id, data, bot, entity),
