@@ -3,16 +3,18 @@ const { SubGroup } = require("../models/SubGroup");
 const { handleReplyFlow, handleButtons } = require("../utils/common");
 const {
   handleRecordUpdate,
-  getRecordId,
+  makeRecordId,
   handleGroupFilter,
   handleListRecords,
 } = require("../utils/entityUtils");
+const { sendEntityAddSuccessMsg } = require("../utils/messageUtils");
 
 const addNewEntity = async (data, bot, entity) => {
   const { message, from } = data;
   const { title: subGroupName, id: groupId } = message.chat;
   const CurrentSubGroup = await SubGroup.findOne({ groupId }).exec();
 
+  // Checking if subgroup is paired up
   if (!CurrentSubGroup) {
     bot.sendMessage(
       groupId,
@@ -21,19 +23,18 @@ const addNewEntity = async (data, bot, entity) => {
     return;
   }
   const { mainGroupId, groupCode } = CurrentSubGroup;
-  const recordId = await getRecordId(groupId, groupCode, entity);
+  const recordId = await makeRecordId(groupId, groupCode, entity);
 
   // get all the entity fields which are to be collected from the user
   const fieldsTobeCollectedFromuser = entity.fieldsCollected.map((field) =>
     allPromptFields(entity, field)
   );
 
-  const values = await handleReplyFlow(
+  const { name, assignee, criticalDate, impact } = await handleReplyFlow(
     fieldsTobeCollectedFromuser,
-    message,
+    groupId,
     bot
   );
-  const { name, assignee, criticalDate, impact } = values;
 
   const newRecord = new entity.Model({
     name,
@@ -52,27 +53,8 @@ const addNewEntity = async (data, bot, entity) => {
 
   newRecord
     .save()
-    .then(() => {
-      bot.sendMessage(
-        groupId,
-        `New ${entity.name} registered as:\nTitle: ${values.name}\n${
-          entity.name
-        } ID: ${recordId}\nAssigned to: ${assignee || "Nil"}\nCritical date: ${
-          criticalDate || "Nil"
-        }\nImpact: ${impact}`
-      );
-      if (entity.shouldShowInMainGroup) {
-        bot.sendMessage(
-          mainGroupId,
-          `New ${entity.label} registered in "${subGroupName}" by @${
-            from.username
-          } as:\nName: ${values.name}\n${
-            entity.name
-          } ID: ${recordId}\nAssigned to: ${
-            assignee || "Nil"
-          }\nCritical date: ${criticalDate || "Nil"}\nImpact: ${impact}`
-        );
-      }
+    .then((savedRec) => {
+      sendEntityAddSuccessMsg(groupId, bot, savedRec, entity);
     })
     .catch((err) => {
       console.log("error in saving" + err);
@@ -108,8 +90,7 @@ const listFilteredRecords = async ({ message }, bot, entity) => {
 
   const buttons = subGroupsUnderThisMainGroup.map((grp) => ({
     text: `${grp.groupCode} - ${grp.groupName}`,
-    onPress: async (data, bot) =>
-      await handleGroupFilter(grp.groupId, data, bot, entity),
+    onPress: (data, bot) => handleGroupFilter(grp.groupId, data, bot, entity),
   }));
 
   const keyboardOptions = handleButtons(buttons);

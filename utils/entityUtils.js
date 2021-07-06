@@ -1,26 +1,6 @@
-const { handleButtons, handleReplyMessage } = require("./common");
-
-const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
-  let msg = "";
-  recordsList.forEach((record, index) => {
-    const status = record.isOpen ? "Open" : "Closed";
-
-    msg += `${index + 1}. ${record.name}\n    ${entity.label}Id: ${
-      record.recordId
-    }\n    Critical Date: ${record.criticalDate || "nil"}\n    Added by @${
-      record.addedBy
-    }\n    Assigned to: ${record.assignee || "nil"}\n    Impact: ${
-      record.impact
-    }\n    Status: ${status}\n`;
-
-    // adding 4 spaces before each new line for nice formatting :)
-    if (!isSubGroup) {
-      msg += `    Group: ${record.addedGroupName}\n`;
-    }
-    msg += "\n";
-  });
-  return msg;
-};
+const { allPromptFields } = require("../constants");
+const { handleButtons, handleReplyFlow } = require("./common");
+const { formatRecordsList, sendUpdateSuccessMsg } = require("./messageUtils");
 
 const handleListRecords = (
   recordsList = [],
@@ -53,12 +33,11 @@ const handleGroupFilter = async (selectedGroupId, { message }, bot, entity) => {
   handleListRecords(records, bot, message, false, entity);
 };
 
-const getRecordId = async (groupId, groupCode, entity) => {
+const makeRecordId = async (groupId, groupCode, entity) => {
   let count = await entity.Model.countDocuments({
     addedGroupId: groupId,
   }).exec();
   let id = groupCode;
-  console.log(entity.name);
   switch (entity.name) {
     case "issue":
       id += "/I";
@@ -77,113 +56,36 @@ const getRecordId = async (groupId, groupCode, entity) => {
   return id;
 };
 
-const transformStatusToBooelan = (val = "") => {
-  // return the isOpenStatus
-  const isDoneSynonyms = [
-    "done",
-    "completed",
-    "finished",
-    "closed",
-    "close",
-    "complete",
-  ];
-  const isOpenSynonyms = ["open", "incomplete", "incompleted", "remains"];
-
-  if (isOpenSynonyms.includes(val.toLowerCase())) {
-    return true;
-  } else if (isDoneSynonyms.includes(val.toLowerCase())) {
-    return false;
-  } else {
-    return -1;
-  }
-};
-
-const sendUpdateSuccessMsg = (label, record, groupId, msg, entity, bot) => {
-  const status = record.isOpen ? "Open" : "Closed";
-  const updateSuccessReply = `${record.name}\n${entity.name} ID: ${
-    record.recordId
-  }\nCritical Date: ${record.criticalDate || "nil"}\nImpact: ${
-    record.impact
-  }\nStatus: ${status} `;
-
-  bot.sendMessage(
-    groupId,
-    `${label} has been updated successfully\n\nUpdated ${entity.name}:\n${updateSuccessReply}`
-  );
-  if (entity.shouldShowInMainGroup) {
-    bot.sendMessage(
-      record.mainGroupId,
-      `${label} has been updated for "${record.name}" in "${record.addedGroupName}" by @${msg.from.username}\n\nUpdated record: ${updateSuccessReply}`
-    );
-  }
-};
-
-const handleValidateAndTransform = (key, val) => {
-  switch (key) {
-    case "name":
-      return val;
-    case "isOpen":
-      return transformStatusToBooelan(val);
-    case "assignee":
-      return val === "." ||
-        (val[0] === "@" && val.split(" ").length === 1 && val.length > 3)
-        ? val
-        : -1;
-    case "impact":
-      if (["high", "medium", "low"].includes(val.toLowerCase())) {
-        return val.toLowerCase();
-      } else if (val.toLowerCase() === "med") {
-        return "medium";
-      } else return -1;
-    case "criticalDate":
-      return val === "." || val.length > 3 ? val : -1;
-    default:
-      return val;
-  }
-};
-
-const handleUpdateField = (key, label, opts) => {
+const handleUpdateField = async (key, label, opts) => {
   const { recordId, groupId, bot, entity } = opts;
-  const handleError = (err = "") => {
-    console.log("error" + err);
-    bot.sendMessage(
-      groupId,
-      "Error in updating. Ensure you have entered fields correctly and try again"
-    );
-  };
+  const field = allPromptFields(entity, key);
+  await bot.sendMessage(groupId, `Enter new value of ${label}`);
+  const values = await handleReplyFlow([field], groupId, bot);
+  const val = values[key];
 
-  // function for updating db
-  const onFieldUpdate = (msg, bot) => {
-    const val = handleValidateAndTransform(key, msg.text);
-    if (val === -1) {
-      handleError("Wrong input. Please review your input and try again\n");
-      handleUpdateField(key, label, opts);
+  entity.Model.findOne({ _id: recordId }, (err, record) => {
+    if (err) {
+      console.log(err);
       return;
     }
-    entity.Model.findOne({ _id: recordId }, (err, record) => {
-      if (err) {
-        handleError(err);
-        return;
-      }
-      if (record[key] === val) {
-        bot.sendMessage(groupId, `${label} is already same`);
-        return;
-      }
-      record[key] = val;
-      record.save().then((savedRec) => {
-        sendUpdateSuccessMsg(label, savedRec, groupId, msg, entity, bot);
+    if (record[key] === val) {
+      bot.sendMessage(groupId, `${label} is already same`);
+      return;
+    }
+    record[key] = val;
+    record
+      .save()
+      .then((savedRec) => {
+        sendUpdateSuccessMsg(label, savedRec, opts);
+      })
+      .catch((err) => {
+        console.log(err);
+        bot.sendMessage(
+          groupId,
+          "There seems to be some error in saving. Please review your input and try again"
+        );
       });
-    });
-  };
-
-  bot
-    .sendMessage(
-      groupId,
-      `Enter new value for ${label} as a reply to this message`
-    )
-    .then((sentMsg) => {
-      handleReplyMessage(sentMsg.message_id, onFieldUpdate);
-    });
+  });
 };
 
 const handleRecordUpdate = (
@@ -224,7 +126,7 @@ const handleRecordUpdate = (
 };
 
 module.exports = {
-  getRecordId,
+  makeRecordId,
   handleRecordUpdate,
   handleGroupFilter,
   handleListRecords,

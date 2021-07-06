@@ -23,7 +23,6 @@ const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
 
 ////////////////// fix for heroku hosting - start//////////////////
-// can be removed when hosting in a vps
 const requestListener = function (req, res) {
   res.writeHead(200);
   res.end("Bot active\nCurrent Time: " + new Date());
@@ -83,13 +82,12 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
-  const command = match[0].split(" ")[0].slice(1);
+  const command = match[0].slice(1);
   const entity = entities[command];
   const { id: groupId } = msg.chat;
   const isMainGroup = await checkIfMainGroup(groupId);
 
   if (isMainGroup && !entity.shouldShowInMainGroup) {
-    // to prevent actions etc from showing in main groups
     bot.sendMessage(
       groupId,
       `${entity.name}s are available only in subgroups :)`
@@ -127,9 +125,10 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   bot.sendMessage(groupId, "Choose option:", keyboardOptions);
 });
 
+// for handling inline button presses
 bot.on("callback_query", async (callbackQuery) => {
   const { data: selectedVal, message: msg } = callbackQuery;
-  if (await handleIsFromPrivateMessage(msg, bot)) {
+  if (msg.chat.type === "private") {
     return;
   }
 
@@ -141,13 +140,14 @@ bot.on("callback_query", async (callbackQuery) => {
   });
 });
 
+// for handling replies to bot messages
 bot.on("message", (msg) => {
   const replyToId = msg.reply_to_message;
   if (replyToId) {
     Object.entries(messageReplyPairs)?.forEach(([key, val]) => {
       if (replyToId.message_id == key) {
         val(msg, bot);
-        delete messageReplyPairs[key]; // removing the past message once it's replied to in order to save memory
+        delete messageReplyPairs[key]; // release from memory
       }
     });
   }

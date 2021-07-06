@@ -1,11 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 const { MainGroup } = require("../models/MainGroup");
 
-const messageReplyPairs = {};
-const handleReplyMessage = (msgId, callBack) => {
-  messageReplyPairs[msgId] = callBack;
-};
-
 // takes buttons and returns markup for regular keyboard
 const getKeyboardOptions = (buttons) => {
   const markupRows = buttons.map((row) => {
@@ -21,7 +16,7 @@ const getKeyboardOptions = (buttons) => {
 };
 
 const callBackKeys = {};
-// custom wrapper to make inline keyboards with callback easy
+// wrapper to make inline keyboards with callback easy
 const handleButtons = (rows) => {
   const isSingleLinedBetter = rows.length > 3; // if more than 3 items shows up, then show them in separate lines to prevent congestion
   const markupRows = rows.map((row) => {
@@ -34,7 +29,6 @@ const handleButtons = (rows) => {
   return {
     reply_markup: {
       inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
-      resize_keyboard: true, // ??????
     },
   };
 };
@@ -52,8 +46,13 @@ const checkIfMainGroup = (groupId) =>
     });
   });
 
+const messageReplyPairs = {};
+const handleReplyMessage = (msgId, callBack) => {
+  messageReplyPairs[msgId] = callBack;
+};
+
 // function to get user input replies to a set of ordered prompts
-const handleReplyFlow = (promptsList, message, bot) =>
+const handleReplyFlow = (promptsList, groupId, bot) =>
   new Promise((resolve) => {
     const values = {};
     const handleFlow = (prompts) => {
@@ -70,7 +69,7 @@ const handleReplyFlow = (promptsList, message, bot) =>
         ) {
           // if the user inputs an invalid value, ask him to enter again
           await bot.sendMessage(
-            message.chat.id,
+            groupId,
             "Invalid entry. Please verify and try again"
           );
           handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
@@ -78,7 +77,6 @@ const handleReplyFlow = (promptsList, message, bot) =>
           const { key, formatter } = prompts[0];
           if (formatter) {
             val = formatter(val);
-            console.log({ val });
           }
           values[key] = val;
           prompts.shift(); // removing the first question after the user has given the answer to it
@@ -86,7 +84,7 @@ const handleReplyFlow = (promptsList, message, bot) =>
         }
       };
       bot
-        .sendMessage(message.chat.id, prompts[0].prompt, prompts[0].keyboard) //keyboard is optional
+        .sendMessage(groupId, prompts[0].prompt, prompts[0].keyboard) //keyboard is optional
         .then((sentMsg) => {
           handleReplyMessage(sentMsg.message_id, cb);
         });

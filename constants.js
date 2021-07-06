@@ -26,6 +26,7 @@ const entities = {
     Model: Issue,
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
   },
   risk: {
     name: "risk",
@@ -33,6 +34,7 @@ const entities = {
     Model: Risk,
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
   },
   action: {
     name: "action",
@@ -40,17 +42,8 @@ const entities = {
     Model: Action,
     shouldShowInMainGroup: false,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
   },
-};
-
-const convertDateStringToDate = (dateString) => {
-  // takes a string like 22/04/21 or 22/04/2021 and returns a JS Date object
-  const dateParts = dateString.split("/");
-  let [dd, mm, yy] = dateParts;
-  if (yy.length === 2) {
-    yy = "20" + yy;
-  }
-  return new Date(yy, mm, dd) || dateString;
 };
 
 const dateValidator = (dateString) => {
@@ -59,11 +52,33 @@ const dateValidator = (dateString) => {
     return false;
   }
   let [dd, mm] = dateParts;
-  return +dd <= 31 && +mm <= 12;
+  return +dd <= 31 && +mm < 12;
 };
 
+// takes a string like 22/04/21 or 22/04/2021 and returns a JS Date object
+const convertDateStringToDate = (dateString) => {
+  const dateParts = dateString.split("/");
+  let [dd, mm, yy] = dateParts;
+  if (yy.length === 2) {
+    yy = "20" + yy;
+  }
+  // note: months start from 0 in javascript
+  // new Date accepts params in yy,mm,dd format
+  return new Date(yy, +mm - 1, dd);
+};
+
+const isDoneSynonyms = [
+  "done",
+  "completed",
+  "finished",
+  "closed",
+  "close",
+  "complete",
+];
+
 // all possible fields which can be collected from the user as reply
-const allPromptFields = (entity, field) => {
+// condition and formatter fields are optional
+const allPromptFields = (entity, key) => {
   const fields = {
     name: {
       key: "name",
@@ -93,8 +108,14 @@ const allPromptFields = (entity, field) => {
       keyboard: getKeyboardOptions(impactButtons),
       formatter: (val) => val.toLowerCase(),
     },
+    isOpen: {
+      key: "status", // boolean
+      prompt: `Enter new status as a reply to this message`,
+      condition: (status) => isDoneSynonyms.includes(status.toLowerCase()),
+      formatter: (status) => isDoneSynonyms.includes(status.toLowerCase()), // returns boolean
+    },
   };
-  return fields[field];
+  return fields[key];
 };
 
 module.exports = { entities, allPromptFields };
