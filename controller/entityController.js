@@ -1,10 +1,6 @@
-const { impactButtons } = require("../constants");
+const { allPromptFields } = require("../constants");
 const { SubGroup } = require("../models/SubGroup");
-const {
-  handleReplyFlow,
-  handleButtons,
-  getButtonChooserValue,
-} = require("../utils/common");
+const { handleReplyFlow, handleButtons } = require("../utils/common");
 const {
   handleRecordUpdate,
   getRecordId,
@@ -25,41 +21,22 @@ const addNewEntity = async (data, bot, entity) => {
     return;
   }
   const { mainGroupId, groupCode } = CurrentSubGroup;
-  const flowPrompts = [
-    {
-      key: "name",
-      prompt: `Enter ${entity.name} name as a reply to this message`,
-      condition: (name) => name.length >= 4,
-    },
-    {
-      key: "criticalDate",
-      prompt:
-        "Enter critical date in string form as a reply to this message\nEnter . to skip entering date",
-      condition: (date) => date === "." || date.length > 3,
-    },
-    {
-      key: "assignee",
-      prompt: `Choose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
-      condition: (userName) =>
-        userName === "." ||
-        (userName[0] === "@" && userName.split(" ").length === 3),
-    },
-  ];
-
   const recordId = await getRecordId(groupId, groupCode, entity);
-  const values = await handleReplyFlow(flowPrompts, message, bot);
-  let { assignee, criticalDate } = values;
-  assignee = assignee === "." ? null : assignee;
-  criticalDate = criticalDate === "." ? null : criticalDate;
-  const impact = await getButtonChooserValue(
-    groupId,
-    impactButtons,
-    `Choose impact/severity of ${entity.name}: `,
-    bot
+
+  // get all the entity fields which are to be collected from the user
+  const fieldsTobeCollectedFromuser = entity.fieldsCollected.map((field) =>
+    allPromptFields(entity, field)
   );
 
+  const values = await handleReplyFlow(
+    fieldsTobeCollectedFromuser,
+    message,
+    bot
+  );
+  const { name, assignee, criticalDate, impact } = values;
+
   const newRecord = new entity.Model({
-    name: values.name,
+    name,
     type: entity.name,
     addedBy: from.username,
     addedGroupId: groupId,
@@ -72,8 +49,6 @@ const addNewEntity = async (data, bot, entity) => {
     recordId,
     impact,
   });
-
-  // const stri
 
   newRecord
     .save()

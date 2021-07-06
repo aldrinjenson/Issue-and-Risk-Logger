@@ -28,4 +28,16 @@ const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
   });
 };
 
-module.exports = { generateGroupCode };
+const handleIsFromPrivateMessage = async (msg, bot) => {
+  if (msg.chat.type === "private") {
+    const chatId = msg.chat.id;
+    await bot.sendMessage(
+      chatId,
+      "These commands can be used only after adding the bot to a group"
+    );
+    return true;
+  }
+  return false;
+};
+
+module.exports = { generateGroupCode, handleIsFromPrivateMessage };

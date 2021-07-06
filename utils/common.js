@@ -6,28 +6,19 @@ const handleReplyMessage = (msgId, callBack) => {
   messageReplyPairs[msgId] = callBack;
 };
 
-const getButtonChooserValue = async (groupId, buttonRows, prompt, bot) =>
-  new Promise((resolve) => {
-    {
-      const cb = (msg) => {
-        const selectedVal = msg.text;
-        resolve(selectedVal);
-      };
-      const markupRows = buttonRows.map((row) => {
-        return { text: row.text, callback_data: row.val };
-      });
-      const keyboardOptions = {
-        reply_markup: {
-          keyboard: [markupRows],
-          resize_keyboard: true,
-          one_time_keyboard: true,
-        },
-      };
-      bot.sendMessage(groupId, prompt, keyboardOptions).then((sentMsg) => {
-        handleReplyMessage(sentMsg.message_id, cb);
-      });
-    }
+// takes buttons and returns markup for regular keyboard
+const getKeyboardOptions = (buttons) => {
+  const markupRows = buttons.map((row) => {
+    return { text: row.text, callback_data: row.val };
   });
+  return {
+    reply_markup: {
+      keyboard: [markupRows],
+      resize_keyboard: true,
+      one_time_keyboard: true,
+    },
+  };
+};
 
 const callBackKeys = {};
 // custom wrapper to make inline keyboards with callback easy
@@ -43,6 +34,7 @@ const handleButtons = (rows) => {
   return {
     reply_markup: {
       inline_keyboard: isSingleLinedBetter ? markupRows : [markupRows],
+      resize_keyboard: true, // ??????
     },
   };
 };
@@ -60,31 +52,18 @@ const checkIfMainGroup = (groupId) =>
     });
   });
 
-const handleIsFromPrivateMessage = async (msg, bot) => {
-  if (msg.chat.type === "private") {
-    const chatId = msg.chat.id;
-    await bot.sendMessage(
-      chatId,
-      "These commands can be used only after adding the bot to a group"
-    );
-    return true;
-  }
-  return false;
-};
-
-// function to easily get answers to a set of ordered prompts
+// function to get user input replies to a set of ordered prompts
 const handleReplyFlow = (promptsList, message, bot) =>
   new Promise((resolve) => {
-    // console.log({ message });
     const values = {};
     const handleFlow = (prompts) => {
       if (!prompts.length) {
         resolve(values); // when finished asking all the prompts from list
         return;
       }
+      // called when a reply has been received
       const cb = async (msg) => {
-        // called from index.js when a reply has been received
-        const val = msg.text;
+        let val = msg.text;
         if (
           prompts[0].hasOwnProperty("condition") &&
           !prompts[0].condition(val)
@@ -96,26 +75,31 @@ const handleReplyFlow = (promptsList, message, bot) =>
           );
           handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
         } else {
-          const { key } = prompts[0];
+          const { key, formatter } = prompts[0];
+          if (formatter) {
+            val = formatter(val);
+            console.log({ val });
+          }
           values[key] = val;
           prompts.shift(); // removing the first question after the user has given the answer to it
           handleFlow(prompts, values); // recursive calling to ensure that the function gets called only after the user has given a suitable answer to the previous question
         }
       };
-      bot.sendMessage(message.chat.id, prompts[0].prompt).then((sentMsg) => {
-        handleReplyMessage(sentMsg.message_id, cb);
-      });
+      bot
+        .sendMessage(message.chat.id, prompts[0].prompt, prompts[0].keyboard) //keyboard is optional
+        .then((sentMsg) => {
+          handleReplyMessage(sentMsg.message_id, cb);
+        });
     };
     handleFlow(promptsList);
   });
 
 module.exports = {
   callBackKeys,
-  getButtonChooserValue,
   handleButtons,
-  handleIsFromPrivateMessage,
   messageReplyPairs,
   handleReplyMessage,
   handleReplyFlow,
   checkIfMainGroup,
+  getKeyboardOptions,
 };

@@ -6,7 +6,6 @@ const http = require("http");
 const {
   handleButtons,
   callBackKeys,
-  handleIsFromPrivateMessage,
   messageReplyPairs,
   checkIfMainGroup,
 } = require("./utils/common");
@@ -20,6 +19,7 @@ const {
   updateRecords,
   listFilteredRecords,
 } = require("./controller/entityController");
+const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
 
 ////////////////// fix for heroku hosting - start//////////////////
