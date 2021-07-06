@@ -1,3 +1,4 @@
+const { impactButtons } = require("../constants");
 const { SubGroup } = require("../models/SubGroup");
 const {
   handleReplyFlow,
@@ -44,20 +45,6 @@ const addNewEntity = async (data, bot, entity) => {
         (userName[0] === "@" && userName.split(" ").length === 3),
     },
   ];
-  const impactButtons = [
-    {
-      text: `High`,
-      val: "high",
-    },
-    {
-      text: `Medium`,
-      val: "medium",
-    },
-    {
-      text: `Low`,
-      val: "low",
-    },
-  ];
 
   const recordId = await getRecordId(groupId, groupCode, entity);
   const values = await handleReplyFlow(flowPrompts, message, bot);
@@ -95,7 +82,7 @@ const addNewEntity = async (data, bot, entity) => {
         groupId,
         `New ${entity.name} registered as:\nTitle: ${values.name}\n${
           entity.name
-        } ID: ${recordId}\nAssigned to: ${assignee || "nil"}\nCritical date: ${
+        } ID: ${recordId}\nAssigned to: ${assignee || "Nil"}\nCritical date: ${
           criticalDate || "Nil"
         }\nImpact: ${impact}`
       );
@@ -107,7 +94,7 @@ const addNewEntity = async (data, bot, entity) => {
           } as:\nName: ${values.name}\n${
             entity.name
           } ID: ${recordId}\nAssigned to: ${
-            assignee || "nil"
+            assignee || "Nil"
           }\nCritical date: ${criticalDate || "Nil"}\nImpact: ${impact}`
         );
       }

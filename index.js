@@ -136,7 +136,7 @@ bot.on("callback_query", async (callbackQuery) => {
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (selectedVal === key) {
       val(callbackQuery, bot);
-      delete callBackKeys[key];
+      // delete callBackKeys[key];
     }
   });
 });

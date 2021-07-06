@@ -5,13 +5,11 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
   recordsList.forEach((record, index) => {
     const status = record.isOpen ? "Open" : "Closed";
 
-    msg += `${index + 1}. ${record.name}\n    ${entity.name}Id: ${
+    msg += `${index + 1}. ${record.name}\n    ${entity.label}Id: ${
       record.recordId
     }\n    Critical Date: ${record.criticalDate || "nil"}\n    Added by @${
       record.addedBy
-    }\n    Assigned to: ${
-      record.assignee || "nil"
-    }\n    Status: ${status}\n    Impact: ${
+    }\n    Assigned to: ${record.assignee || "nil"}\n    Impact: ${
       record.impact
     }\n    Status: ${status}\n`;
 
@@ -122,22 +120,30 @@ const sendUpdateSuccessMsg = (label, record, groupId, msg, entity, bot) => {
 
 const handleValidateAndTransform = (key, val) => {
   switch (key) {
+    case "name":
+      return val;
     case "isOpen":
       return transformStatusToBooelan(val);
     case "assignee":
-      return val === "." || (val[0] === "@" && val.split(" ").length === 1)
+      return val === "." ||
+        (val[0] === "@" && val.split(" ").length === 1 && val.length > 3)
         ? val
         : -1;
     case "impact":
-      return ["high", "med", "low"].includes(val.toLowerCase())
-        ? val.toLowerCase()
-        : -1;
+      if (["high", "medium", "low"].includes(val.toLowerCase())) {
+        return val.toLowerCase();
+      } else if (val.toLowerCase() === "med") {
+        return "medium";
+      } else return -1;
     case "criticalDate":
-      return val === "." || val.length > 3;
+      return val === "." || val.length > 3 ? val : -1;
+    default:
+      return val;
   }
 };
 
-const handleUpdateField = (key, label, { recordId, groupId, bot, entity }) => {
+const handleUpdateField = (key, label, opts) => {
+  const { recordId, groupId, bot, entity } = opts;
   const handleError = (err = "") => {
     console.log("error" + err);
     bot.sendMessage(
@@ -149,17 +155,9 @@ const handleUpdateField = (key, label, { recordId, groupId, bot, entity }) => {
   // function for updating db
   const onFieldUpdate = (msg, bot) => {
     const val = handleValidateAndTransform(key, msg.text);
-    // const val =
-    //   key === "isOpen" ? transformStatusToBooelan(msg.text) : msg.text;
-    // validate and transform input
-    // let val = msg.text;
-    // switch (key) {
-    //   case "isOpen":
-    //     val = transformStatusToBooelan(val);
-    //     case 'assignee'
-    // }
     if (val === -1) {
-      handleError("Wrong input");
+      handleError("Wrong input. Please review your input and try again\n");
+      handleUpdateField(key, label, opts);
       return;
     }
     entity.Model.findOne({ _id: recordId }, (err, record) => {
@@ -207,6 +205,10 @@ const handleRecordUpdate = (
     {
       text: "Critical Date",
       onPress: () => handleUpdateField("criticalDate", "Critical Date", opts),
+    },
+    {
+      text: "Assignee",
+      onPress: () => handleUpdateField("assignee", "Assignee", opts),
     },
     {
       text: "Impact",

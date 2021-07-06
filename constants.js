@@ -2,20 +2,20 @@ const { Action } = require("./models/Action");
 const { Issue } = require("./models/Issue");
 const { Risk } = require("./models/Risk");
 
-const IMPACT_CONSTANTS = {
-  HIGH: {
-    name: "high",
-    value: 1,
+const impactButtons = [
+  {
+    text: `High`,
+    val: "high",
   },
-  MED: {
-    name: "medium",
-    value: 0,
+  {
+    text: `Medium`,
+    val: "medium",
   },
-  LOW: {
-    name: "low",
-    value: -1,
+  {
+    text: `Low`,
+    val: "low",
   },
-};
+];
 
 const entities = {
   issue: {
@@ -38,4 +38,4 @@ const entities = {
   },
 };
 
-module.exports = { entities, IMPACT_CONSTANTS };
+module.exports = { entities, impactButtons };
