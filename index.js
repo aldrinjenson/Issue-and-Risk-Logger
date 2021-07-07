@@ -37,7 +37,7 @@ bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 bot.on("polling_error", console.log);
 const helpMessage = `This is a bot to manage the issue and risk logging among multiple groups.
 Register the bot as 'main' with the /register command in the primary group and then pair sub groups using the join token received
-Add issues or tasks using the /issue and /task options.
+Add issues or risks using the /issue and /risk options.
 All the updates made in the subgroups will be notified instantly in the main group as well`;
 
 mongoose
@@ -52,7 +52,7 @@ mongoose
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const resp =
-    "This is an issue and task logger bot.\nEnter /help to see more information";
+    "This is an issue and risk logger bot.\nEnter /help to see more information";
   bot.sendMessage(chatId, resp);
 });
 bot.onText(/\/help/, (msg) => {
