@@ -2,6 +2,7 @@ const { Action } = require("./models/Action");
 const { Issue } = require("./models/Issue");
 const { Risk } = require("./models/Risk");
 const { getKeyboardOptions } = require("./utils/common");
+const { getDateStrfromDateObj } = require("./utils/messageUtils");
 
 const impactButtons = [
   {
@@ -63,7 +64,7 @@ const convertDateStringToDate = (dateString) => {
     yy = "20" + yy;
   }
   // note: months start from 0 in javascript
-  // new Date accepts params in yy,mm,dd format
+  // new Date accepts params in yy, mm, dd format
   return new Date(yy, +mm - 1, dd);
 };
 
@@ -74,6 +75,7 @@ const isDoneSynonyms = [
   "closed",
   "close",
   "complete",
+  "fixed",
 ];
 
 // all possible fields which can be collected from the user as reply
@@ -87,8 +89,9 @@ const allPromptFields = (entity, key) => {
     },
     criticalDate: {
       key: "criticalDate",
-      prompt:
-        "Enter critical date in dd/mm/yy form as a reply to this message\neg: 28/06/21\nEnter . to skip entering date",
+      prompt: `Enter critical date in dd/mm/yy form as a reply to this message\neg: ${getDateStrfromDateObj(
+        new Date()
+      )}\nEnter . to skip entering date`,
       condition: (dateStr) => dateStr === "." || dateValidator(dateStr),
       formatter: (dateStr) =>
         dateStr === "." ? null : convertDateStringToDate(dateStr),
@@ -109,10 +112,10 @@ const allPromptFields = (entity, key) => {
       formatter: (val) => val.toLowerCase(),
     },
     isOpen: {
-      key: "status", // boolean
-      prompt: `Enter new status as a reply to this message`,
+      key: "isOpen", // boolean
+      prompt: `Enter new status as a reply to this message\neg: closed`,
       condition: (status) => isDoneSynonyms.includes(status.toLowerCase()),
-      formatter: (status) => isDoneSynonyms.includes(status.toLowerCase()), // returns boolean
+      formatter: (status) => !isDoneSynonyms.includes(status.toLowerCase()), // returns boolean
     },
   };
   return fields[key];

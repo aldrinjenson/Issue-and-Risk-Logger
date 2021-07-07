@@ -1,6 +1,10 @@
 const { allPromptFields } = require("../constants");
 const { handleButtons, handleReplyFlow } = require("./common");
-const { formatRecordsList, sendUpdateSuccessMsg } = require("./messageUtils");
+const {
+  formatRecordsList,
+  sendUpdateSuccessMsg,
+  getStringifiedRecord,
+} = require("./messageUtils");
 
 const handleListRecords = (
   recordsList = [],
@@ -59,7 +63,7 @@ const makeRecordId = async (groupId, groupCode, entity) => {
 const handleUpdateField = async (key, label, opts) => {
   const { recordId, groupId, bot, entity } = opts;
   const field = allPromptFields(entity, key);
-  await bot.sendMessage(groupId, `Enter new value of ${label}`);
+  // await bot.sendMessage(groupId, `Enter new value of ${label}`);
   const values = await handleReplyFlow([field], groupId, bot);
   const val = values[key];
 
@@ -88,20 +92,22 @@ const handleUpdateField = async (key, label, opts) => {
   });
 };
 
-const handleRecordUpdate = (
-  recordId,
+const handleRecordUpdate = async (
+  record,
   { message: { chat, message_id } },
   bot,
   entity
 ) => {
   const { id: groupId } = chat;
   const opts = {
-    recordId,
+    recordId: record._id,
     groupId,
     message_id,
     bot,
     entity,
   };
+  const stringifiedRecord = getStringifiedRecord(record, true);
+  await bot.sendMessage(groupId, stringifiedRecord);
   const updateButtons = [
     { text: "Name", onPress: () => handleUpdateField("name", "Name", opts) },
     {

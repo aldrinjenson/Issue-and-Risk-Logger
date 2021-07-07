@@ -36,7 +36,7 @@ const ActionSchema = new Schema(
       required: false,
     },
     criticalDate: {
-      type: String,
+      type: Date,
       required: false,
     },
     isOpen: {

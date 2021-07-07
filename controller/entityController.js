@@ -109,13 +109,13 @@ const updateRecords = async ({ message }, bot, entity) => {
   }).exec();
 
   if (!recordsList.length) {
-    bot.sendMessage(groupId, `Not ${entity.name} added to update`);
+    bot.sendMessage(groupId, `No open ${entity.name} to update`);
     return;
   }
 
   const buttons = recordsList.map((record) => ({
     text: `${record.recordId}: ${record.name}`,
-    onPress: (data, bot) => handleRecordUpdate(record._id, data, bot, entity),
+    onPress: (data, bot) => handleRecordUpdate(record, data, bot, entity),
   }));
 
   const keyboardOptions = handleButtons(buttons);
