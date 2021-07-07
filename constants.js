@@ -100,10 +100,7 @@ const allPromptFields = (entity, key) => {
     },
     assignee: {
       key: "assignee",
-      prompt: `Choose Assignee\nEnter username in the format: @username as a reply to this message\nEnter . to skip adding assignee`,
-      condition: (userName) =>
-        userName === "." ||
-        (userName[0] === "@" && userName.split(" ").length === 1),
+      prompt: `Choose Assignee\nEnter assignee name as a reply to this message\nEnter . to skip adding assignee`,
       formatter: (nameStr) => (nameStr === "." ? null : nameStr.trim()),
     },
     impact: {
