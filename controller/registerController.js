@@ -30,14 +30,26 @@ const registerAsMainGroup = async (data, bot) => {
     joinToken: token,
   };
   const newGroup = new MainGroup(obj);
-  newGroup.save().then(() => {
-    bot.editMessageText(`"${message.chat.title}" registered as main group`, {
-      chat_id: groupId,
-      message_id: message.message_id,
+  newGroup
+    .save()
+    .then(async () => {
+      bot.editMessageText(`"${message.chat.title}" registered as main group`, {
+        chat_id: groupId,
+        message_id: message.message_id,
+      });
+      await bot.sendMessage(
+        groupId,
+        "Register sub groups using the following token:"
+      );
+      bot.sendMessage(groupId, token);
+    })
+    .catch((err) => {
+      bot.sendMessage(
+        groupId,
+        "There seems to be some error in registration. Please try again after some time"
+      );
+      console.log(err);
     });
-    bot.sendMessage(groupId, "Register sub groups using the following token:");
-    bot.sendMessage(groupId, token);
-  });
 };
 
 const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
