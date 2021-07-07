@@ -27,7 +27,7 @@ const entities = {
     Model: Issue,
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
-    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"], // not currently used
   },
   risk: {
     name: "risk",
@@ -35,7 +35,7 @@ const entities = {
     Model: Risk,
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
-    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"],
   },
   action: {
     name: "action",
@@ -43,7 +43,7 @@ const entities = {
     Model: Action,
     shouldShowInMainGroup: false,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
-    updatableFields: ["name", "criticalDate", "assignee", "impact", "status"],
+    updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"],
   },
 };
 
@@ -52,8 +52,8 @@ const dateValidator = (dateString) => {
   if (dateParts.length !== 3) {
     return false;
   }
-  let [dd, mm] = dateParts;
-  return +dd <= 31 && +mm < 12;
+  let [dd, mm, yy] = dateParts;
+  return +dd <= 31 && +mm <= 12 && (yy.length === 2 || yy.length === 4);
 };
 
 // takes a string like 22/04/21 or 22/04/2021 and returns a JS Date object
@@ -65,7 +65,9 @@ const convertDateStringToDate = (dateString) => {
   }
   // note: months start from 0 in javascript
   // new Date accepts params in yy, mm, dd format
-  return new Date(yy, +mm - 1, dd);
+  const newDate = new Date(yy, +mm - 1, dd);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
 };
 
 const isDoneSynonyms = [

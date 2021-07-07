@@ -5,6 +5,7 @@ const {
   sendUpdateSuccessMsg,
   getStringifiedRecord,
 } = require("./messageUtils");
+const { areValuesEqual } = require("./misc");
 
 const handleListRecords = (
   recordsList = [],
@@ -72,7 +73,7 @@ const handleUpdateField = async (key, label, opts) => {
       console.log(err);
       return;
     }
-    if (record[key] === val) {
+    if (areValuesEqual(record[key], val)) {
       bot.sendMessage(groupId, `${label} is already same`);
       return;
     }
