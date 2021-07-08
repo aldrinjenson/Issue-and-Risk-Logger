@@ -2,7 +2,8 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 process.env.NTBA_FIX_319 = 1;
 const TelegramBot = require("node-telegram-bot-api");
-const http = require("http");
+const express = require("express");
+// const http = require("http");
 const {
   handleButtons,
   callBackKeys,
@@ -21,15 +22,36 @@ const {
 } = require("./controller/entityController");
 const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
+const { createUser } = require("./utils/registerUtils");
 
 ////////////////// fix for heroku hosting - start//////////////////
-const requestListener = function (req, res) {
-  res.writeHead(200);
-  res.end("Bot active\nCurrent Time: " + new Date());
-};
-const server = http.createServer(requestListener);
+// To remove CROS (cross-resource-origin-platform) problem
+const app = express();
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // to allow all client we use *
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "OPTIONS,GET,POST,PUT,PATCH,DELETE"
+  ); //these are the allowed methods
+  res.setHeader("Access-Control-Allow-Headers", "*"); // allowed headers (Auth for extra data related to authoriaztiom)
+  next();
+});
+
+app.use(express.json());
+app.get("/", (req, res) => {
+  res.send("Bot active\nCurrent Time: " + new Date());
+});
+app.post("/registerToken", (req, res) => {
+  const token = req.body.token;
+  createUser(token)
+    .then((msg) => {
+      res.send({ msg, err: 0 });
+    })
+    .catch((errMsg) => res.send({ msg: errMsg, err: 1 }));
+});
+
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log("server listening"));
+app.listen(PORT, () => console.log("Server listening"));
 ////////////////// fix for heroku hosting - end//////////////////
 
 let bot = null;

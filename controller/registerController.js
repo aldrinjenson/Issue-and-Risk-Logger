@@ -1,7 +1,8 @@
 const short = require("short-uuid");
 const { MainGroup } = require("../models/MainGroup");
 const { SubGroup } = require("../models/SubGroup");
-const { handleReplyMessage } = require("../utils/common");
+const { User } = require("../models/User");
+const { handleReplyMessage, handleReplyFlow } = require("../utils/common");
 const { generateGroupCode } = require("../utils/groupUtils");
 const { AlreadyRegisteredGroup } = require("../utils/registerUtils");
 
@@ -10,8 +11,8 @@ const registerAsMainGroup = async (data, bot) => {
   const { title, id: groupId } = message.chat;
   const registeredGroup = await AlreadyRegisteredGroup(groupId);
 
+  // if already registered as main group
   if (registeredGroup) {
-    // if already registered as main group
     bot.sendMessage(
       groupId,
       "Aleady registerd as main group\nUse the following token to register sub groups:\n"
@@ -20,28 +21,68 @@ const registerAsMainGroup = async (data, bot) => {
     return;
   }
 
-  const token = short.generate();
-  const obj = {
+  // receive registerToken from user
+  const { registerToken } = await handleReplyFlow(
+    [
+      {
+        key: "registerToken",
+        prompt: "Please enter the register token as a reply to this message",
+      },
+    ],
+    groupId,
+    bot
+  );
+
+  // check if a user with the registerToken exists in db
+  const existingUser = await User.findOne({ registerToken }).exec();
+  if (!existingUser) {
+    bot.sendMessage(groupId, "Invalid token entered. Please verify");
+    return;
+  }
+  if (existingUser.isTokenUsed) {
+    bot.sendMessage(
+      groupId,
+      "This token has already been used to register a main group"
+    );
+    return;
+  }
+
+  // user obj exists in the db, but registerToken hasn't been used to register main group
+  const joinToken = short.generate();
+
+  const newMainGroup = new MainGroup({
     registeredBy: from.username,
     registeredDate: message.date,
     subGroupIds: [],
     groupName: title || "",
     groupId,
-    joinToken: token,
-  };
-  const newGroup = new MainGroup(obj);
-  newGroup
+    joinToken,
+  });
+
+  newMainGroup
     .save()
-    .then(async () => {
-      bot.editMessageText(`"${message.chat.title}" registered as main group`, {
-        chat_id: groupId,
-        message_id: message.message_id,
-      });
+    .then(async (savedMainGroup) => {
       await bot.sendMessage(
         groupId,
-        "Register sub groups using the following token:"
+        `"${message.chat.title}" registered as main group\nRegister sub groups using the following token:`
       );
-      bot.sendMessage(groupId, token);
+      bot.sendMessage(groupId, joinToken);
+
+      existingUser.isTokenUsed = true;
+      existingUser.userId = from.id;
+      existingUser.userName = from.username;
+      existingUser.connectedMainGroup = savedMainGroup._id;
+
+      existingUser
+        .save()
+        .then(() =>
+          console.log(
+            `Token: ${registerToken} has been used to register main group`
+          )
+        )
+        .catch((err) =>
+          console.log("error in updating token used status", err)
+        );
     })
     .catch((err) => {
       bot.sendMessage(
@@ -95,12 +136,12 @@ const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {
 
 const registerAsSubGroup = ({ message }, bot) => {
   const { id: groupId } = message.chat;
-  const msgId = message.message_id;
+  const { message_id } = message;
   bot.editMessageText("Enter join token as a reply to this message", {
     chat_id: groupId,
-    message_id: msgId,
+    message_id: message_id,
   });
-  handleReplyMessage(msgId, handleTokenVerifyAndRegisterSubgroup);
+  handleReplyMessage(message_id, handleTokenVerifyAndRegisterSubgroup);
 };
 
 module.exports = { registerAsMainGroup, registerAsSubGroup };
