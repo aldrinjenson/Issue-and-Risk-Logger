@@ -28,6 +28,7 @@ const entities = {
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
     updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"], // not currently used
+    skippableFields: ["criticalDate", "assignee"],
   },
   risk: {
     name: "risk",
@@ -36,6 +37,7 @@ const entities = {
     shouldShowInMainGroup: true,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
     updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"],
+    skippableFields: ["criticalDate", "assignee"],
   },
   action: {
     name: "action",
@@ -44,6 +46,7 @@ const entities = {
     shouldShowInMainGroup: false,
     fieldsCollected: ["name", "criticalDate", "assignee", "impact"],
     updatableFields: ["name", "criticalDate", "assignee", "impact", "isOpen"],
+    skippableFields: ["criticalDate"],
   },
 };
 
@@ -100,7 +103,13 @@ const allPromptFields = (entity, key) => {
     },
     assignee: {
       key: "assignee",
-      prompt: `Choose Assignee\nEnter assignee name as a reply to this message\nEnter . to skip adding assignee`,
+      prompt: `Choose Assignee\nEnter assignee name as a reply to this message${
+        entity.skippableFields.includes("assignee")
+          ? `\nEnter . to skip adding assignee`
+          : ""
+      }`,
+      condition: (str) =>
+        entity.skippableFields.includes("assignee") ? true : str !== ".",
       formatter: (nameStr) => (nameStr === "." ? null : nameStr.trim()),
     },
     impact: {
