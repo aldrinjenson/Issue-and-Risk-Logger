@@ -149,15 +149,15 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
 
 // for handling inline button presses
 bot.on("callback_query", async (callbackQuery) => {
-  const { data: selectedVal, message: msg } = callbackQuery;
+  const { id: queryId, data: selectedVal, message: msg } = callbackQuery;
   if (msg.chat.type === "private") {
     return;
   }
+  bot.answerCallbackQuery(queryId); // necessary to prevent the loading/clock symbol on inline buttons. Thanks @Abhishek :)
 
   Object.entries(callBackKeys)?.forEach(([key, val]) => {
     if (selectedVal === key) {
       val(callbackQuery, bot);
-      // delete callBackKeys[key];
     }
   });
 });
