@@ -104,7 +104,7 @@ const allPromptFields = (entity, key) => {
     assignee: {
       key: "assignee",
       prompt: `Choose Assignee\nEnter assignee name as a reply to this message${
-        entity.skippableFields.includes("assignee")
+        entity.skippableFields.includes("assignee") // assignee is mandatory for actions
           ? `\nEnter . to skip adding assignee`
           : ""
       }`,
