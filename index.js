@@ -100,10 +100,13 @@ bot.onText(/\/register/, async (msg) => {
   bot.sendMessage(groupId, "Choose group type", keyboardOptions);
 });
 
+// bot.sendDocument()
+
 bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;
   }
+
   const command = match[0].slice(1);
   const entity = entities[command];
   const { id: groupId } = msg.chat;

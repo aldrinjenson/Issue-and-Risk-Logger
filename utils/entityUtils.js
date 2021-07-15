@@ -6,6 +6,7 @@ const {
   getStringifiedRecord,
 } = require("./messageUtils");
 const { areValuesEqual } = require("./misc");
+const { sendRecordsAsPdf } = require("./pdfUtils");
 
 const handleListRecords = (
   recordsList = [],
@@ -15,6 +16,9 @@ const handleListRecords = (
   entity
 ) => {
   const groupId = message.chat.id;
+  if (recordsList.length > 3) {
+    sendRecordsAsPdf(recordsList, bot, message);
+  }
   const stringifiedRecordsList = formatRecordsList(
     recordsList,
     isSubGroup,

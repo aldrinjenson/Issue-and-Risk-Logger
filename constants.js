@@ -7,15 +7,15 @@ const { getDateStrfromDateObj } = require("./utils/messageUtils");
 const impactButtons = [
   {
     text: `High`,
-    val: "high",
+    val: "Hig",
   },
   {
     text: `Medium`,
-    val: "medium",
+    val: "Medium",
   },
   {
     text: `Low`,
-    val: "low",
+    val: "Low",
   },
 ];
 
@@ -56,6 +56,9 @@ const dateValidator = (dateString) => {
     return false;
   }
   let [dd, mm, yy] = dateParts;
+  if (isNaN(yy)) {
+    return false;
+  }
   return +dd <= 31 && +mm <= 12 && (yy.length === 2 || yy.length === 4);
 };
 
