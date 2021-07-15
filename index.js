@@ -100,8 +100,6 @@ bot.onText(/\/register/, async (msg) => {
   bot.sendMessage(groupId, "Choose group type", keyboardOptions);
 });
 
-// bot.sendDocument()
-
 bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   if (await handleIsFromPrivateMessage(msg, bot)) {
     return;

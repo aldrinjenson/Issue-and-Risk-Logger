@@ -17,8 +17,10 @@ const handleListRecords = (
 ) => {
   const groupId = message.chat.id;
   if (recordsList.length > 3) {
-    sendRecordsAsPdf(recordsList, bot, message);
+    sendRecordsAsPdf(recordsList, bot, message, isSubGroup, entity.label);
+    return;
   }
+
   const stringifiedRecordsList = formatRecordsList(
     recordsList,
     isSubGroup,
