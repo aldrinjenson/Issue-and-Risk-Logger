@@ -2,7 +2,7 @@ const { Action } = require("./models/Action");
 const { Issue } = require("./models/Issue");
 const { Risk } = require("./models/Risk");
 const { getKeyboardOptions } = require("./utils/common");
-const { getDateStrfromDateObj } = require("./utils/messageUtils");
+const { getDateStrFromDateObj } = require("./utils/messageUtils");
 
 const impactButtons = [
   {
@@ -97,7 +97,7 @@ const allPromptFields = (entity, key) => {
     },
     criticalDate: {
       key: "criticalDate",
-      prompt: `Enter critical date in dd/mm/yy form as a reply to this message\neg: ${getDateStrfromDateObj(
+      prompt: `Enter critical date in dd/mm/yy form as a reply to this message\neg: ${getDateStrFromDateObj(
         new Date()
       )}\nEnter . to skip entering date`,
       condition: (dateStr) => dateStr === "." || dateValidator(dateStr),

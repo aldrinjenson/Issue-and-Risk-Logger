@@ -1,4 +1,4 @@
-const getDateStrfromDateObj = (dateObj) => {
+const getDateStrFromDateObj = (dateObj) => {
   // can be null or a new Date object
   if (dateObj) {
     const dd = dateObj.getDate();
@@ -15,7 +15,7 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
   recordsList.forEach((record, index) => {
     const { name, recordId, assignee, impact, addedBy } = record;
     const status = record.isOpen ? "Open" : "Closed";
-    const criticalDate = getDateStrfromDateObj(record.criticalDate);
+    const criticalDate = getDateStrFromDateObj(record.criticalDate);
 
     msg += `${index + 1}. ${name}\n    ${
       entity.label
@@ -34,7 +34,7 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
 
 const getStringifiedRecord = (record, shouldShowStatus = false) => {
   const { name, recordId, assignee, criticalDate, impact, type } = record;
-  const date = getDateStrfromDateObj(criticalDate);
+  const date = getDateStrFromDateObj(criticalDate);
   const status = record.isOpen ? "Open" : "Closed";
 
   let msg = `Title: ${name}\n${type} ID: ${recordId}\nAssigned to: ${
@@ -77,7 +77,7 @@ const sendUpdateSuccessMsg = (label, record, opts) => {
 
 module.exports = {
   getStringifiedRecord,
-  getDateStrfromDateObj,
+  getDateStrFromDateObj,
   sendEntityAddSuccessMsg,
   formatRecordsList,
   sendUpdateSuccessMsg,

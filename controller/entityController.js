@@ -74,6 +74,7 @@ const listRecords = async ({ message }, bot, entity) => {
 
   const recordsList = await entity.Model.find({ ...groupQuery, isOpen: true })
     .sort("createdAt")
+    .lean()
     .exec();
   handleListRecords(recordsList, bot, message, isSubGroup, entity);
 };

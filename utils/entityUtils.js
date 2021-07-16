@@ -39,6 +39,7 @@ const handleGroupFilter = async (selectedGroupId, { message }, bot, entity) => {
     addedGroupId: selectedGroupId,
     isOpen: true,
   })
+    .lean()
     .sort("createdAt")
     .exec();
   handleListRecords(records, bot, message, false, entity);

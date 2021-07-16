@@ -16,7 +16,7 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "mongoose": "^5.13.0",
+    "mongoose": "^5.13.2",
     "node-telegram-bot-api": "^0.53.0",
     "pdf-creator-node": "^2.2.2",
     "short-uuid": "^4.2.0"

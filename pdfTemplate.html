@@ -3,37 +3,65 @@
   <head>
     <mate charest="utf-8" />
     <title>Issue and Risk Logger Bot, generated output</title>
+    <style>
+      td {
+        height: 30px;
+        padding: 4px;
+      }
+      table {
+        border-collapse: collapse;
+      }
+    </style>
   </head>
   <!-- if you want to modify, checkout handlebars documentaion -->
   <body>
-    <h1 style="text-align: center; font-size: 35">{{entityName}}s</h1>
+    <h1 style="text-align: center; font-size: 45">{{entityName}}s</h1>
     <h3>{{groupName}}</h3>
-    <table border="1">
-      <thead>
+    <center>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>{{entityName}}-ID</th>
+            <th>{{entityName}}(name)</th>
+            <th>Assignee</th>
+            <th>Critical Date</th>
+            <th>Impact</th>
+            {{#if isMainGroup}}
+            <th>Added group</th>
+            {{/if}}
+            <th>Created Date</th>
+            <th>Created By</th>
+          </tr>
+        </thead>
+        {{#each records}}
         <tr>
-          <th>{{entityName}}-ID</th>
-          <th>{{entityName}}(name)</th>
-          <th>Assignee</th>
-          <th>Critical Date</th>
-          <th>Impact</th>
-          {{#if isSubGroup}}
-          <th>Added group</th>
+          <td style="width: 80px">{{recordId}}</td>
+          <td style="width: 400px">{{name}}</td>
+          {{#if isAssigneeNameUserName}}
+          <td align="center">
+            <a href="https://t.me/{{assignee}}" style="text-decoration: none">
+              {{assignee}}
+            </a>
+          </td>
+          {{else}}
+          <td align="center">{{assignee}}</td>
           {{/if}}
+          <td align="center">{{criticalDate}}</td>
+          <td align="center">{{impact}}</td>
+          {{#if ../isMainGroup}}
+          <td align="center">{{addedGroupName}}</td>
+          {{/if}}
+          <td align="center">{{createdAt}}</td>
+          <td style="vertical-align: middle" align="center">
+            <a href="https://t.me/{{addedBy}}" style="text-decoration: none">
+              @{{addedBy}}
+            </a>
+          </td>
         </tr>
-      </thead>
-      {{#each records}}
-      <tr>
-        <td>{{recordId}}</td>
-        <td style="width: 500px">{{name}}</td>
-        <td>{{assignee}}</td>
-        <td align="center">{{criticalDate}}</td>
-        <td align="center">{{impact}}</td>
-        {{#if ../isSubGroup}}
-        <td align="center">{{addedGroupName}}</td>
-        {{/if}}
-      </tr>
-      {{/each}}
-    </table>
+        <tfoot></tfoot>
+        {{/each}}
+      </table>
+    </center>
     <p style="margin-top: 50px">Generated time: {{date}}</p>
   </body>
 </html>

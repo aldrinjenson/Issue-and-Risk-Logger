@@ -6,7 +6,7 @@ const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
     // for accounting to groups which may have a single word
     let code =
       words[0][0] +
-      (words[1]?.[0] || newSubGroupName[newSubGroupName.length - 1]);
+      (words[1]?.[0] || newSubGroupName[newSubGroupName.length - 1][0]);
 
     SubGroup.find({ mainGroupId }, (err, subGroups) => {
       if (err) {
