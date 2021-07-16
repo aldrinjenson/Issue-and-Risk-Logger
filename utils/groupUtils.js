@@ -2,28 +2,30 @@ const { SubGroup } = require("../models/SubGroup");
 
 const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
   return new Promise((resolve) => {
-    let words = newSubGroupName.split(" ");
-    // for accounting to groups which may have a single word
-    let code =
+    const words = newSubGroupName.split(" ");
+    const initials =
       words[0][0] +
-      (words[1]?.[0] || newSubGroupName[newSubGroupName.length - 1][0]);
+      (words[1]?.[0] || newSubGroupName[newSubGroupName.length - 1]);
 
     SubGroup.find({ mainGroupId }, (err, subGroups) => {
       if (err) {
-        console.log("err" + err);
+        console.log("error in db query" + err);
         return;
       }
+
       const allSubGroupsCodes = subGroups.map((grp) => grp.groupCode);
-      let index = 2;
+      let index = 2; // start with 2
       //  add a numeral at the end if the codes match
-      const checkAndUpdateCode = async (newCode) => {
-        if (!allSubGroupsCodes.includes(newCode)) {
-          resolve(newCode);
+      const checkAndUpdateCode = async (initials, num) => {
+        const code = num ? initials + num : initials;
+        if (!allSubGroupsCodes.includes(code)) {
+          resolve(code);
           return;
         }
-        checkAndUpdateCode(newCode + index++);
+        // recursively check with updated index till an unused code is found
+        checkAndUpdateCode(initials, index++);
       };
-      checkAndUpdateCode(code.toUpperCase());
+      checkAndUpdateCode(initials.toUpperCase());
     });
   });
 };

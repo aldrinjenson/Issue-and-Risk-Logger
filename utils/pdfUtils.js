@@ -1,7 +1,6 @@
 const pdf = require("pdf-creator-node");
 const fs = require("fs");
 const { getDateStrFromDateObj } = require("./messageUtils");
-const { tempData, tempMessage } = require("./data");
 const { toTitleCase } = require("./misc");
 const pdfTemplate = fs.readFileSync("pdfTemplate.html", "utf8");
 
@@ -19,7 +18,6 @@ const sendRecordsAsPdf = (
   isSubGroup,
   entityName
 ) => {
-  console.log(records);
   const { id: groupId, title: groupName } = message.chat;
   const modfiedRecords = records.map((record) => {
     return {
@@ -30,7 +28,6 @@ const sendRecordsAsPdf = (
       impact: toTitleCase(record.impact),
     };
   });
-  console.log(modfiedRecords);
 
   const document = {
     html: pdfTemplate,
@@ -42,23 +39,25 @@ const sendRecordsAsPdf = (
       groupName,
     },
     type: "stream",
-    path: "./output.pdf",
   };
-  const filename = entityName + "list" + new Date().toLocaleString();
-  console.log(filename);
+
+  const fileOptions = {
+    contentType: "application/pdf",
+    filename: `${entityName}s List - ${groupName}`,
+  };
+
   pdf
     .create(document, options)
-    .then((stream) => {
-      bot.sendDocument(groupId, stream, {
-        contentType: "application/pdf",
-        filename,
-      });
+    .then((stream, err) => {
+      if (err) {
+        console.log("error in creating pdf stream " + err);
+        return;
+      }
+      bot.sendDocument(groupId, stream, {}, fileOptions);
     })
     .catch((err) => {
       console.error(console.log("Error: " + err));
     });
 };
-
-// sendRecordsAsPdf(tempData, null, tempMessage, true, "Issue");
 
 module.exports = { sendRecordsAsPdf };
