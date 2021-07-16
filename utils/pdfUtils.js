@@ -19,6 +19,8 @@ const sendRecordsAsPdf = (
   entityName
 ) => {
   const { id: groupId, title: groupName } = message.chat;
+  bot.sendMessage(groupId, `${records.length} ${entityName}s registered`);
+
   const modfiedRecords = records.map((record) => {
     return {
       ...record,

@@ -7,15 +7,15 @@ const { getDateStrFromDateObj } = require("./utils/messageUtils");
 const impactButtons = [
   {
     text: `High`,
-    val: "Hig",
+    val: "high",
   },
   {
     text: `Medium`,
-    val: "Medium",
+    val: "medium",
   },
   {
     text: `Low`,
-    val: "Low",
+    val: "low",
   },
 ];
 
