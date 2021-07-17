@@ -16,7 +16,7 @@ const handleListRecords = (
   entity
 ) => {
   const groupId = message.chat.id;
-  if (recordsList.length > 3) {
+  if (recordsList.length >= 5) {
     sendRecordsAsPdf(recordsList, bot, message, isSubGroup, entity.label);
     return;
   }
@@ -61,7 +61,7 @@ const makeRecordId = async (groupId, groupCode, entity) => {
       id += "/A";
       break;
     default:
-      // shouldn't echnically ever reach this case :)
+      // shouldn't technically ever reach this case :)
       console.log("invalid entry");
   }
   id += `-${count + 1}`;
@@ -71,7 +71,6 @@ const makeRecordId = async (groupId, groupCode, entity) => {
 const handleUpdateField = async (key, label, opts) => {
   const { recordId, groupId, bot, entity } = opts;
   const field = allPromptFields(entity, key);
-  // await bot.sendMessage(groupId, `Enter new value of ${label}`);
   const values = await handleReplyFlow([field], groupId, bot);
   const val = values[key];
 

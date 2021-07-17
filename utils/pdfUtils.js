@@ -27,6 +27,10 @@ const sendRecordsAsPdf = (
       criticalDate: getDateStrFromDateObj(record.criticalDate),
       createdAt: getDateStrFromDateObj(record.createdAt),
       isAssigneeNameUserName: record.assignee && record.assignee[0] === "@",
+      assignee:
+        record.assignee && record.assignee[0] === "@"
+          ? record.assignee.slice(1) // to generate telegram links
+          : record.assignee,
       impact: toTitleCase(record.impact),
     };
   });

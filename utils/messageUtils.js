@@ -1,3 +1,5 @@
+const { toTitleCase } = require("./misc");
+
 const getDateStrFromDateObj = (dateObj) => {
   // can be null or a new Date object
   if (dateObj) {
@@ -21,7 +23,7 @@ const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
       entity.label
     }Id: ${recordId}\n    Critical Date: ${criticalDate}\n    Added by @${addedBy}\n    Assigned to: ${
       assignee || "nil"
-    }\n    Impact: ${impact}\n    Status: ${status}\n`;
+    }\n    Impact: ${toTitleCase(impact)}\n    Status: ${status}\n`;
 
     // adding 4 spaces before each new line for nice formatting :)
     if (!isSubGroup) {
@@ -39,7 +41,7 @@ const getStringifiedRecord = (record, shouldShowStatus = false) => {
 
   let msg = `Title: ${name}\n${type} ID: ${recordId}\nAssigned to: ${
     assignee || "Nil"
-  }\nCritical date: ${date}\nImpact: ${impact}`;
+  }\nCritical date: ${date}\nImpact: ${toTitleCase(impact)}`;
 
   if (shouldShowStatus) {
     msg += `\nStatus: ${status}`;
