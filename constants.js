@@ -76,16 +76,6 @@ const convertDateStringToDate = (dateString) => {
   return newDate;
 };
 
-const isDoneSynonyms = [
-  "done",
-  "completed",
-  "finished",
-  "closed",
-  "close",
-  "complete",
-  "fixed",
-];
-
 // all possible fields which can be collected from the user as reply
 // condition and formatter fields are optional
 const allPromptFields = (entity, key) => {
@@ -124,9 +114,10 @@ const allPromptFields = (entity, key) => {
     },
     isOpen: {
       key: "isOpen", // boolean
-      prompt: `Enter new status as a reply to this message\neg: closed`,
-      condition: (status) => isDoneSynonyms.includes(status.toLowerCase()),
-      formatter: (status) => !isDoneSynonyms.includes(status.toLowerCase()), // returns boolean
+      prompt: `Enter new status as a reply to this message\neg: closed, open`,
+      condition: (status) =>
+        ["closed", "close", "open"].includes(status.toLowerCase()),
+      formatter: (status) => ["open"].includes(status.toLowerCase()), // returns boolean
     },
   };
   return fields[key];

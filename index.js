@@ -113,8 +113,12 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
   const buttons = isMainGroup
     ? [
         {
-          text: `List ${entity.name}s`,
+          text: `Open ${entity.name}s`,
           onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
+        },
+        {
+          text: `Closed ${entity.name}s`,
+          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity, false),
         },
         {
           text: `Filtered ${entity.name}s`,
@@ -127,12 +131,16 @@ bot.onText(/\/issue|\/risk|\/action/, async (msg, match) => {
           onPress: (cbQuery, bot) => addNewEntity(cbQuery, bot, entity),
         },
         {
-          text: `List ${entity.name}s`,
+          text: `List open ${entity.name}s`,
           onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity),
         },
         {
           text: `Update ${entity.name}`,
           onPress: (cbQuery, bot) => updateRecords(cbQuery, bot, entity),
+        },
+        {
+          text: `Closed ${entity.name}s`,
+          onPress: (cbQuery, bot) => listRecords(cbQuery, bot, entity, false),
         },
       ];
 

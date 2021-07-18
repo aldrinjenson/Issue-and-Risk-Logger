@@ -30,7 +30,7 @@ const handleListRecords = (
     groupId,
     stringifiedRecordsList.length
       ? stringifiedRecordsList
-      : `No open ${entity.name}s`
+      : `No ${entity.name}s registered`
   );
 };
 
@@ -99,12 +99,8 @@ const handleUpdateField = async (key, label, opts) => {
   });
 };
 
-const handleRecordUpdate = async (
-  record,
-  { message: { chat, message_id } },
-  bot,
-  entity
-) => {
+const handleRecordUpdate = async (record, message, bot, entity) => {
+  const { chat, message_id } = message;
   const { id: groupId } = chat;
   const opts = {
     recordId: record._id,

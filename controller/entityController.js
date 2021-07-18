@@ -65,14 +65,14 @@ const addNewEntity = async (data, bot, entity) => {
     });
 };
 
-const listRecords = async ({ message }, bot, entity) => {
+const listRecords = async ({ message }, bot, entity, isOpen = true) => {
   const { id: groupId } = message.chat;
   const isSubGroup = await SubGroup.findOne({ groupId }).exec();
   const groupQuery = isSubGroup
     ? { addedGroupId: groupId }
     : { mainGroupId: groupId };
 
-  const recordsList = await entity.Model.find({ ...groupQuery, isOpen: true })
+  const recordsList = await entity.Model.find({ ...groupQuery, isOpen })
     .sort("createdAt")
     .lean()
     .exec();
@@ -106,25 +106,35 @@ const updateRecords = async ({ message }, bot, entity) => {
   const { id: groupId } = message.chat;
   const recordsList = await entity.Model.find({
     addedGroupId: groupId,
-    isOpen: true,
-  }).exec();
+  })
+    .lean()
+    .exec();
 
   if (!recordsList.length) {
-    bot.sendMessage(groupId, `No open ${entity.name} to update`);
+    bot.sendMessage(groupId, `No ${entity.name}s added to update`);
     return;
   }
 
-  const buttons = recordsList.map((record) => ({
-    text: `${record.recordId}: ${record.name}`,
-    onPress: (data, bot) => handleRecordUpdate(record, data, bot, entity),
-  }));
-
-  const keyboardOptions = handleButtons(buttons);
-  bot.sendMessage(
+  const allRecordsIds = recordsList.map((record) => record.recordId);
+  const { recordId } = await handleReplyFlow(
+    [
+      {
+        key: "recordId",
+        prompt: `Enter the ID of ${entity.name} you want to update as a reply to this message`,
+        condition: (id) => allRecordsIds.includes(id.toUpperCase()),
+        formatter: (id) => id.toUpperCase(),
+      },
+    ],
     groupId,
-    `Choose ${entity.name} to update: `,
-    keyboardOptions
+    bot
   );
+
+  const selectedRecord = recordsList.find((el) => el.recordId === recordId);
+  if (!selectedRecord) {
+    bot.sendMessage(groupId, "Invalid ID. Please check your input");
+    return;
+  }
+  handleRecordUpdate(selectedRecord, message, bot, entity);
 };
 
 module.exports = {
