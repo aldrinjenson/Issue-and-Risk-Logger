@@ -1,6 +1,7 @@
+process.env.NTBA_FIX_319 = 1; // for Heroku hosting
+process.env.NTBA_FIX_350 = 1; // for bot to send pdfs without warnings
 require("dotenv").config();
 const mongoose = require("mongoose");
-process.env.NTBA_FIX_319 = 1; // for Heroku hosting
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
 const cron = require("node-cron");
@@ -178,10 +179,12 @@ bot.on("message", (msg) => {
   }
 });
 
-cron.schedule("*/2 * * * *", () => {
-  console.log("running a task every two minute");
-  // generateDailyReports(bot);
+cron.schedule("* 7 * * *", () => {
+  // hour index starts from index 0
+  console.log("8 AM, sending daily reports to subgroups");
+  generateDailyReports(bot);
 });
+
 // setTimeout(() => {
 //   generateDailyReports(bot);
-// }, 2000);
+// }, 2500);

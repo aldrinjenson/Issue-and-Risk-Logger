@@ -55,7 +55,7 @@ const sendRecordsAsPdf = async (
   try {
     const pdfStream = await pdf.create(document, options);
     const sentMsg = await bot.sendDocument(groupId, pdfStream, {}, fileOptions);
-    console.log("Pdf List sent to group", sentMsg.chat.title);
+    console.log("Pdf List sent to group: ", sentMsg.chat.title);
   } catch (err) {
     console.log("error in creating pdf stream " + err);
   }
