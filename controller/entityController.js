@@ -66,7 +66,7 @@ const addNewEntity = async (data, bot, entity) => {
 };
 
 const listRecords = async ({ message }, bot, entity, isOpen = true) => {
-  const { id: groupId } = message.chat;
+  const { id: groupId, title: groupName } = message.chat;
   const isSubGroup = await SubGroup.findOne({ groupId }).exec();
   const groupQuery = isSubGroup
     ? { addedGroupId: groupId }
@@ -76,7 +76,9 @@ const listRecords = async ({ message }, bot, entity, isOpen = true) => {
     .sort("createdAt")
     .lean()
     .exec();
-  handleListRecords(recordsList, bot, message, isSubGroup, entity);
+
+  const opts = { groupId, groupName };
+  handleListRecords(recordsList, bot, opts, isSubGroup, entity.label);
 };
 
 // only for main groups

@@ -12,16 +12,16 @@ const getDateStrFromDateObj = (dateObj) => {
   return "Nil";
 };
 
-const formatRecordsList = (recordsList = [], isSubGroup, entity) => {
+const formatRecordsList = (recordsList = [], isSubGroup, entityName) => {
   let msg = "";
   recordsList.forEach((record, index) => {
     const { name, recordId, assignee, impact, addedBy } = record;
     const status = record.isOpen ? "Open" : "Closed";
     const criticalDate = getDateStrFromDateObj(record.criticalDate);
 
-    msg += `${index + 1}. ${name}\n    ${
-      entity.label
-    }Id: ${recordId}\n    Critical Date: ${criticalDate}\n    Added by @${addedBy}\n    Assigned to: ${
+    msg += `${
+      index + 1
+    }. ${name}\n    ${entityName}Id: ${recordId}\n    Critical Date: ${criticalDate}\n    Added by @${addedBy}\n    Assigned to: ${
       assignee || "nil"
     }\n    Impact: ${toTitleCase(impact)}\n    Status: ${status}\n`;
 

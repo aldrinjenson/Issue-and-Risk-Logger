@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 process.env.NTBA_FIX_319 = 1; // for Heroku hosting
 const TelegramBot = require("node-telegram-bot-api");
 const express = require("express");
+const cron = require("node-cron");
 const {
   handleButtons,
   callBackKeys,
@@ -22,6 +23,7 @@ const {
 const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
 const { createUser } = require("./utils/registerUtils");
+const { generateDailyReports } = require("./services/generateDailyReports");
 
 const app = express();
 app.use((req, res, next) => {
@@ -176,4 +178,9 @@ bot.on("message", (msg) => {
   }
 });
 
-module.exports = { bot };
+cron.schedule("*/2 * * * *", () => {
+  console.log("running a task every two minute");
+  // generateDailyReports(bot);
+});
+
+generateDailyReports(bot);

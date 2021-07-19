@@ -11,14 +11,8 @@ const options = {
   type: "pdf",
 };
 
-const sendRecordsAsPdf = (
-  records = [],
-  bot,
-  message,
-  isSubGroup,
-  entityName
-) => {
-  const { id: groupId, title: groupName } = message.chat;
+const sendRecordsAsPdf = (records = [], bot, opts, isSubGroup, entityName) => {
+  const { groupId, groupName } = opts;
   bot.sendMessage(groupId, `${records.length} ${entityName}s registered`);
 
   const modfiedRecords = records.map((record) => {

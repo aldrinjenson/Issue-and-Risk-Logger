@@ -8,29 +8,28 @@ const {
 const { areValuesEqual } = require("./misc");
 const { sendRecordsAsPdf } = require("./pdfUtils");
 
-const handleListRecords = (
+const handleListRecords = async (
   recordsList = [],
   bot,
-  message,
+  opts,
   isSubGroup,
-  entity
+  entityName
 ) => {
-  const groupId = message.chat.id;
   if (recordsList.length >= 5) {
-    sendRecordsAsPdf(recordsList, bot, message, isSubGroup, entity.label);
+    await sendRecordsAsPdf(recordsList, bot, opts, isSubGroup, entityName);
     return;
   }
 
   const stringifiedRecordsList = formatRecordsList(
     recordsList,
     isSubGroup,
-    entity
+    entityName
   );
   bot.sendMessage(
-    groupId,
+    opts.groupId,
     stringifiedRecordsList.length
       ? stringifiedRecordsList
-      : `No ${entity.name}s registered`
+      : `No ${entityName}s registered`
   );
 };
 
@@ -42,7 +41,11 @@ const handleGroupFilter = async (selectedGroupId, { message }, bot, entity) => {
     .lean()
     .sort("createdAt")
     .exec();
-  handleListRecords(records, bot, message, false, entity);
+
+  const { id: groupId, title: groupName } = message.chat;
+  const opts = { groupId, groupName };
+
+  handleListRecords(records, bot, opts, false, entity.label);
 };
 
 const makeRecordId = async (groupId, groupCode, entity) => {

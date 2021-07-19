@@ -17,6 +17,8 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "mongoose": "^5.13.2",
+    "node-cron": "^3.0.0",
+    "node-excel-export": "^1.4.4",
     "node-telegram-bot-api": "^0.53.0",
     "pdf-creator-node": "^2.2.2",
     "short-uuid": "^4.2.0"
