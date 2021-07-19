@@ -25,7 +25,7 @@ const handleListRecords = async (
     isSubGroup,
     entityName
   );
-  bot.sendMessage(
+  await bot.sendMessage(
     opts.groupId,
     stringifiedRecordsList.length
       ? stringifiedRecordsList

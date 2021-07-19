@@ -11,7 +11,13 @@ const options = {
   type: "pdf",
 };
 
-const sendRecordsAsPdf = (records = [], bot, opts, isSubGroup, entityName) => {
+const sendRecordsAsPdf = async (
+  records = [],
+  bot,
+  opts,
+  isSubGroup,
+  entityName
+) => {
   const { groupId, groupName } = opts;
   bot.sendMessage(groupId, `${records.length} ${entityName}s registered`);
 
@@ -23,7 +29,7 @@ const sendRecordsAsPdf = (records = [], bot, opts, isSubGroup, entityName) => {
       isAssigneeNameUserName: record.assignee && record.assignee[0] === "@",
       assignee:
         record.assignee && record.assignee[0] === "@"
-          ? record.assignee.slice(1) // to generate telegram links
+          ? record.assignee.slice(1) // to embed telegram links in pdf
           : record.assignee,
       impact: toTitleCase(record.impact),
     };
@@ -43,21 +49,16 @@ const sendRecordsAsPdf = (records = [], bot, opts, isSubGroup, entityName) => {
 
   const fileOptions = {
     contentType: "application/pdf",
-    filename: `${entityName}s List - ${groupName}`,
+    filename: `${entityName}s List - ${groupName}.pdf`,
   };
 
-  pdf
-    .create(document, options)
-    .then((stream, err) => {
-      if (err) {
-        console.log("error in creating pdf stream " + err);
-        return;
-      }
-      bot.sendDocument(groupId, stream, {}, fileOptions);
-    })
-    .catch((err) => {
-      console.error(console.log("Error: " + err));
-    });
+  try {
+    const pdfStream = await pdf.create(document, options);
+    const sentMsg = await bot.sendDocument(groupId, pdfStream, {}, fileOptions);
+    console.log("Pdf List sent to group", sentMsg.chat.title);
+  } catch (err) {
+    console.log("error in creating pdf stream " + err);
+  }
 };
 
 module.exports = { sendRecordsAsPdf };

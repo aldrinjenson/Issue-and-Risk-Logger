@@ -182,5 +182,6 @@ cron.schedule("*/2 * * * *", () => {
   console.log("running a task every two minute");
   // generateDailyReports(bot);
 });
-
-generateDailyReports(bot);
+// setTimeout(() => {
+//   generateDailyReports(bot);
+// }, 2000);
