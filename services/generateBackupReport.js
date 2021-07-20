@@ -1,11 +1,17 @@
 const excel = require("node-excel-export");
 const fs = require("fs");
+const { MainGroup } = require("../models/MainGroup");
+const { Issue } = require("../models/Issue");
+const { Risk } = require("../models/Risk");
+const { Action } = require("../models/Action");
+const { entities } = require("../constants");
+const { getDateStrFromDateObj } = require("../utils/messageUtils");
+const { toTitleCase } = require("../utils/misc");
 
 const styles = {
   headerDark: {
-    fill: {},
     font: {
-      sz: 14,
+      bold: true,
     },
   },
   cellGreen: {
@@ -18,59 +24,129 @@ const styles = {
 };
 
 const specification = {
-  customer_name: {
+  recordId: {
     headerStyle: styles.headerDark,
     displayName: "Issue ID",
-    cellStyle: function (value, row) {
-      return row.status_id == 1
-        ? styles.cellGreen
-        : { fill: { fgColor: { rgb: "FFFF0000" } } }; // <- Inline cell style is possible
-    },
-    width: 120,
+    width: "10",
   },
-  status_id: {
+  name: {
     displayName: "Issue Name",
     headerStyle: styles.headerDark,
-    cellFormat: function (value, row) {
-      return value == 1 ? "Active" : "Inactive";
-    },
-    width: "10", // width in letters
+    width: "35",
   },
-  note: {
+  assignee: {
     headerStyle: styles.headerDark,
-    displayName: "Description",
-    width: 220,
+    displayName: "Assignee",
+    width: "20",
+  },
+  criticalDate: {
+    headerStyle: styles.headerDark,
+    displayName: "Critical Date",
+    width: "14",
+    cellFormat: (val) => (val ? getDateStrFromDateObj(val) : "Nil"),
+    cellStyle: { alignment: { horizontal: "left" } },
+  },
+  impact: {
+    headerStyle: styles.headerDark,
+    displayName: "Impact",
+    width: "9",
+    cellFormat: (val) => toTitleCase(val),
+  },
+  addedGroupName: {
+    headerStyle: styles.headerDark,
+    displayName: "Created Group",
+    width: "15",
+  },
+  createdAt: {
+    headerStyle: styles.headerDark,
+    displayName: "Created Date",
+    width: "14",
+    cellFormat: (val) => getDateStrFromDateObj(val),
+  },
+  addedBy: {
+    headerStyle: styles.headerDark,
+    displayName: "Created By",
+    width: "20",
+    cellFormat: (val) => `@${val}`,
+  },
+  isOpen: {
+    headerStyle: styles.headerDark,
+    displayName: "Status",
+    width: "20",
+    cellFormat: (val) => (val ? "Open" : "Closed"),
   },
 };
 
-const dataset = [
-  { customer_name: "IBM", status_id: 1, note: "some note", misc: "not shown" },
-  { customer_name: "HP", status_id: 0, note: "some note" },
-  { customer_name: "MS", status_id: 0, note: "some note", misc: "not shown" },
-];
+const generateReport = async (issuesList, risks, actions, bot, opts) => {
+  const { groupId, groupName } = opts;
+  const reportBuffer = excel.buildExport([
+    {
+      name: "Issues",
+      specification: specification,
+      data: issuesList,
+    },
+    {
+      name: "Risks",
+      specification: specification,
+      data: risks,
+    },
+    {
+      name: "Actions",
+      specification: specification,
+      data: actions,
+    },
+  ]);
 
-// This function will return Buffer
-const report = excel.buildExport([
-  {
-    name: "Issues",
-    specification: specification,
-    data: dataset,
-  },
-  {
-    name: "Risks",
-    specification: specification,
-    data: dataset,
-  },
-  {
-    name: "Actions",
-    specification: specification,
-    data: dataset,
-  },
-]);
+  const fileOptions = {
+    contentType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    filename: `${groupName} - Daily backup.xlsx`,
+  };
 
-fs.writeFile("./report.xlsx", report, (err) => {
-  if (err) {
-    console.error(err);
-    return;
+  await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
+
+  fs.writeFile("./report.xlsx", reportBuffer, (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+};
+
+const getRecords = async (bot, opts) => {
+  const { groupId, groupName } = opts;
+  const issues = await Issue.find({ mainGroupId: groupId })
+    .lean()
+    .sort({ createdAt: -1 })
+    .exec();
+  const risks = await Risk.find({ mainGroupId: groupId })
+    .lean()
+    .sort({ createdAt: -1 })
+    .exec();
+  const actions = await Action.find({ mainGroupId: groupId })
+    .lean()
+    .sort({ createdAt: -1 })
+    .exec();
+
+  try {
+    await generateReport(issues, risks, actions, bot, opts);
+  } catch (error) {
+    console.log("error in sending daily excel backup to " + groupName);
   }
-});
+};
+
+const generateDailyBackup = async (bot) => {
+  const maingroups = await MainGroup.find({}).lean().exec();
+  const entityModels = Object.values(entities).map((entity) => entity.Model);
+
+  const promises = [];
+  for (const group of maingroups) {
+    const opts = { groupId: group.groupId, groupName: group.groupName };
+    promises.push(getRecords(bot, opts, entityModels));
+  }
+  Promise.all(promises)
+    .then(() => console.log("Daily backups sent to all groups"))
+    .catch(() => console.log("error in sending daily excel backup"));
+};
+
+module.exports = { generateDailyBackup };

@@ -25,6 +25,7 @@ const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
 const { createUser } = require("./utils/registerUtils");
 const { generateDailyReports } = require("./services/generateDailyReports");
+const { generateDailyBackup } = require("./services/generateBackupReport");
 
 const app = express();
 app.use((req, res, next) => {
@@ -181,10 +182,12 @@ bot.on("message", (msg) => {
 
 cron.schedule("* 7 * * *", () => {
   // hour index starts from index 0
-  console.log("8 AM, sending daily reports to subgroups");
+  console.log("8 AM, sending daily reports and backups");
+  generateDailyBackup(bot);
   generateDailyReports(bot);
 });
 
-// setTimeout(() => {
-//   generateDailyReports(bot);
-// }, 2500);
+setTimeout(() => {
+  // generateDailyReports(bot);
+  generateDailyBackup(bot);
+}, 2500);
