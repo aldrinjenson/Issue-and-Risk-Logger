@@ -44,19 +44,34 @@ const registerAsMainGroup = async (data, bot) => {
       groupId,
       "This token has already been used to register a main group"
     );
+    // user obj exists in the db, but registerToken hasn't been used to register main group
     return;
   }
 
-  // user obj exists in the db, but registerToken hasn't been used to register main group
+  const emailRegex = "[^@ \t\r\n]+@[^@ \t\r\n]+.[^@ \t\r\n]+";
+  const { emailId } = await handleReplyFlow(
+    [
+      {
+        key: "emailId",
+        prompt: "Enter your email to get daily backup report of all records",
+        condition: (email) => email.match(emailRegex),
+      },
+    ],
+    groupId,
+    bot
+  );
+  console.log(emailId);
+
   const joinToken = short.generate();
 
   const newMainGroup = new MainGroup({
     registeredBy: from.username,
     registeredDate: message.date,
     subGroupIds: [],
-    groupName: title || "",
+    groupName: title,
     groupId,
     joinToken,
+    backupEmailId: emailId,
   });
 
   newMainGroup

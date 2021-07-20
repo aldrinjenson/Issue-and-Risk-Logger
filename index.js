@@ -40,7 +40,7 @@ app.get("/", (req, res) => {
   res.send("Bot active\nCurrent Time: " + new Date());
 });
 app.post("/registerToken", (req, res) => {
-  const token = req.body.token;
+  const token = req.body.token; // !!!!!!!!!!!!!!!!!!!! TO BE FIXED HERE????????????????????????????
   createUser(token)
     .then((msg) => {
       res.send({ msg, err: 0 });
@@ -180,14 +180,20 @@ bot.on("message", (msg) => {
   }
 });
 
-cron.schedule("* 7 * * *", () => {
-  // hour index starts from index 0
-  console.log("8 AM, sending daily reports and backups");
-  generateDailyBackup(bot);
-  generateDailyReports(bot);
-});
+cron.schedule(
+  "0 7 * * *",
+  () => {
+    console.log("8 AM, sending daily reports and backups");
+    generateDailyBackup(bot);
+    generateDailyReports(bot);
+  },
+  {
+    timezone: "Asia/Kolkata",
+  }
+);
 
 setTimeout(() => {
   // generateDailyReports(bot);
   generateDailyBackup(bot);
 }, 2500);
+// fix up above issue with register token

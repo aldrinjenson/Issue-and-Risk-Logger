@@ -7,6 +7,7 @@ const { Action } = require("../models/Action");
 const { entities } = require("../constants");
 const { getDateStrFromDateObj } = require("../utils/messageUtils");
 const { toTitleCase } = require("../utils/misc");
+const { sendMail } = require("./sendMail");
 
 const styles = {
   headerDark: {
@@ -77,9 +78,10 @@ const specification = {
   },
 };
 
-const generateReport = async (issuesList, risks, actions, bot, opts) => {
-  const { groupId, groupName } = opts;
-  const reportBuffer = excel.buildExport([
+const generateReport = async (issuesList, risks, actions, bot, group) => {
+  const { groupId, groupName, backupEmailId } = group;
+  console.log(backupEmailId);
+  const reportBuffer = await excel.buildExport([
     {
       name: "Issues",
       specification: specification,
@@ -102,8 +104,9 @@ const generateReport = async (issuesList, risks, actions, bot, opts) => {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     filename: `${groupName} - Daily backup.xlsx`,
   };
+  await sendMail(reportBuffer, backupEmailId);
 
-  await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
+  // await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
 
   fs.writeFile("./report.xlsx", reportBuffer, (err) => {
     if (err) {
@@ -113,8 +116,8 @@ const generateReport = async (issuesList, risks, actions, bot, opts) => {
   });
 };
 
-const getRecords = async (bot, opts) => {
-  const { groupId, groupName } = opts;
+const getRecords = async (bot, group) => {
+  const { groupId, groupName } = group;
   const issues = await Issue.find({ mainGroupId: groupId })
     .lean()
     .sort({ createdAt: -1 })
@@ -129,7 +132,7 @@ const getRecords = async (bot, opts) => {
     .exec();
 
   try {
-    await generateReport(issues, risks, actions, bot, opts);
+    await generateReport(issues, risks, actions, bot, group);
   } catch (error) {
     console.log("error in sending daily excel backup to " + groupName);
   }
@@ -141,8 +144,7 @@ const generateDailyBackup = async (bot) => {
 
   const promises = [];
   for (const group of maingroups) {
-    const opts = { groupId: group.groupId, groupName: group.groupName };
-    promises.push(getRecords(bot, opts, entityModels));
+    promises.push(getRecords(bot, group, entityModels));
   }
   Promise.all(promises)
     .then(() => console.log("Daily backups sent to all groups"))
