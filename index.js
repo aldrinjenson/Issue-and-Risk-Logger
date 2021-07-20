@@ -194,6 +194,5 @@ cron.schedule(
 );
 
 // setTimeout(() => {
-// generateDailyBackup(bot);
+//   generateDailyBackup(bot);
 // }, 2500);
-// fix up above issue with register token

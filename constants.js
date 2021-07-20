@@ -48,6 +48,7 @@ const entities = {
   },
 };
 
+// validates dateStrings in the form dd/mm/yy or dd/mm/yyyy
 const dateValidator = (dateString) => {
   const dateParts = dateString.split("/");
   if (dateParts.length !== 3) {
@@ -74,8 +75,8 @@ const convertDateStringToDate = (dateString) => {
   return newDate;
 };
 
-// all possible fields which can be collected from the user as reply
-// condition and formatter fields are optional
+// all possible fields which can be collected from the user as reply.
+// condition formatter and keyboard fields are optional
 const allPromptFields = (entity, key) => {
   const fields = {
     name: {
@@ -115,7 +116,7 @@ const allPromptFields = (entity, key) => {
       prompt: `Enter new status as a reply to this message\neg: closed, open`,
       condition: (status) =>
         ["closed", "close", "open"].includes(status.toLowerCase()),
-      formatter: (status) => ["open"].includes(status.toLowerCase()), // returns boolean
+      formatter: (status) => status === "open", // returns boolean
     },
   };
   return fields[key];

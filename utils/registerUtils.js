@@ -1,9 +1,4 @@
-const { User, MainGroup } = require("../models");
-
-const AlreadyRegisteredGroup = async (groupId = "") => {
-  const grp = await MainGroup.findOne({ groupId }).exec();
-  return grp;
-};
+const { User } = require("../models");
 
 const handleValidateToken = (token) => {
   // proper strong validation can be added here once front-end has been fully set
@@ -33,4 +28,4 @@ const createUser = async (registerToken = "") => {
     return { msg: err, err: 1 };
   }
 };
-module.exports = { AlreadyRegisteredGroup, createUser };
+module.exports = { createUser };

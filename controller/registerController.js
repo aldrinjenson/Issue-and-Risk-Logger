@@ -2,12 +2,11 @@ const short = require("short-uuid");
 const { MainGroup, SubGroup, User } = require("../models");
 const { handleReplyMessage, handleReplyFlow } = require("../utils/common");
 const { generateGroupCode } = require("../utils/groupUtils");
-const { AlreadyRegisteredGroup } = require("../utils/registerUtils");
 
 const registerAsMainGroup = async (data, bot) => {
   const { message, from } = data;
   const { title, id: groupId } = message.chat;
-  const registeredGroup = await AlreadyRegisteredGroup(groupId);
+  const registeredGroup = await MainGroup.findOne({ groupId }).exec();
 
   // if already registered as main group
   if (registeredGroup) {
@@ -42,7 +41,6 @@ const registerAsMainGroup = async (data, bot) => {
       groupId,
       "This token has already been used to register a main group"
     );
-    // user obj exists in the db, but registerToken hasn't been used to register main group
     return;
   }
 
@@ -58,7 +56,6 @@ const registerAsMainGroup = async (data, bot) => {
     groupId,
     bot
   );
-  console.log(emailId);
 
   const joinToken = short.generate();
 

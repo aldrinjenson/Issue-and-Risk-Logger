@@ -12,13 +12,6 @@ const styles = {
       bold: true,
     },
   },
-  cellGreen: {
-    fill: {
-      fgColor: {
-        rgb: "FF00FF00",
-      },
-    },
-  },
 };
 
 const specification = {
@@ -96,21 +89,22 @@ const generateReport = async (issuesList, risks, actions, bot, group) => {
     },
   ]);
 
+  await sendMail(reportBuffer, backupEmailId);
+
+  // to be deleted
   const fileOptions = {
     contentType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     filename: `${groupName} - Daily backup.xlsx`,
   };
-  await sendMail(reportBuffer, backupEmailId);
+  await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
 
-  // await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
-
-  fs.writeFile("./report.xlsx", reportBuffer, (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-  });
+  // fs.writeFile("./report.xlsx", reportBuffer, (err) => {
+  //   if (err) {
+  //     console.error(err);
+  //     return;
+  //   }
+  // });
 };
 
 const getRecords = async (bot, group) => {
