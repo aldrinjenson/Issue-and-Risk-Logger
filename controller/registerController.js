@@ -1,7 +1,5 @@
 const short = require("short-uuid");
-const { MainGroup } = require("../models/MainGroup");
-const { SubGroup } = require("../models/SubGroup");
-const { User } = require("../models/User");
+const { MainGroup, SubGroup, User } = require("../models");
 const { handleReplyMessage, handleReplyFlow } = require("../utils/common");
 const { generateGroupCode } = require("../utils/groupUtils");
 const { AlreadyRegisteredGroup } = require("../utils/registerUtils");

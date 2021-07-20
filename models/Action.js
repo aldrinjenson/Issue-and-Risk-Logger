@@ -56,4 +56,4 @@ const ActionSchema = new Schema(
 );
 
 const Action = mongoose.model("Action", ActionSchema);
-module.exports = { Action };
+module.exports = Action;

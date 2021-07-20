@@ -1,5 +1,4 @@
-const { User } = require("../models/User");
-const { MainGroup } = require("../models/MainGroup");
+const { User, MainGroup } = require("../models");
 
 const AlreadyRegisteredGroup = async (groupId = "") => {
   const grp = await MainGroup.findOne({ groupId }).exec();
@@ -7,35 +6,31 @@ const AlreadyRegisteredGroup = async (groupId = "") => {
 };
 
 const handleValidateToken = (token) => {
+  // proper strong validation can be added here once front-end has been fully set
   return !token.length >= 2; // :)
 };
 
-const createUser = (registerToken = "") =>
-  new Promise((resolve, reject) => {
-    if (handleValidateToken(registerToken)) {
-      reject("Invalid token input");
-    }
-    // checking if the registertoken is unique
-    User.findOne({ registerToken }, (err, existingUser) => {
-      if (existingUser) {
-        reject("User with token already exists");
-      }
-    });
+const createUser = async (registerToken = "") => {
+  if (handleValidateToken(registerToken)) {
+    return { msg: "Token failed validation", err: 1 };
+  }
 
-    const newUser = new User({
-      registerToken,
-      isTokenUsed: false,
-    });
-    newUser
-      .save()
-      .then(() => {
-        console.log("New token received from webportal has been saved");
-        resolve("User saved");
-      })
-      .catch((err) => {
-        console.log("error in saving" + err);
-        reject(err);
-      });
+  const existingUser = await User.findOne({ registerToken }).exec();
+  if (existingUser) {
+    return { msg: "User with token already exists", err: 1 };
+  }
+
+  const newUser = new User({
+    registerToken,
+    isTokenUsed: false,
   });
-
+  try {
+    await newUser.save();
+    console.log("New token received from webportal has been saved");
+    return { msg: "User saved", err: 0 };
+  } catch (err) {
+    console.log("error in saving user: " + err);
+    return { msg: err, err: 1 };
+  }
+};
 module.exports = { AlreadyRegisteredGroup, createUser };

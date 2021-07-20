@@ -1,9 +1,6 @@
 const excel = require("node-excel-export");
 const fs = require("fs");
-const { MainGroup } = require("../models/MainGroup");
-const { Issue } = require("../models/Issue");
-const { Risk } = require("../models/Risk");
-const { Action } = require("../models/Action");
+const { MainGroup, Issue, Risk, Action } = require("../models");
 const { entities } = require("../constants");
 const { getDateStrFromDateObj } = require("../utils/messageUtils");
 const { toTitleCase } = require("../utils/misc");

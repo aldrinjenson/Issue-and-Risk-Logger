@@ -56,4 +56,4 @@ const RiskSchema = new Schema(
 );
 
 const Risk = mongoose.model("Risk", RiskSchema);
-module.exports = { Risk };
+module.exports = Risk;

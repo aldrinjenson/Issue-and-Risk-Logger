@@ -1,5 +1,5 @@
 const { allPromptFields } = require("../constants");
-const { SubGroup } = require("../models/SubGroup");
+const { SubGroup } = require("../models");
 const { handleReplyFlow, handleButtons } = require("../utils/common");
 const {
   handleRecordUpdate,

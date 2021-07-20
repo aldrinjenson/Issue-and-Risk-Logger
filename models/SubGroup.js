@@ -32,4 +32,4 @@ const SubGroupSchema = new Schema(
 );
 
 const SubGroup = mongoose.model("SubGroup", SubGroupSchema);
-module.exports = { SubGroup };
+module.exports = SubGroup;

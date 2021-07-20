@@ -1,4 +1,4 @@
-const { SubGroup } = require("../models/SubGroup");
+const { SubGroup } = require("../models");
 
 const generateGroupCode = async (mainGroupId = "", newSubGroupName = "") => {
   return new Promise((resolve) => {

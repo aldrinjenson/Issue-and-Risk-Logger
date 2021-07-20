@@ -1,7 +1,7 @@
 // script to update the status of all issues as open
 const mongoose = require("mongoose");
 require("dotenv").config();
-const { Issue } = require("../models/Issue");
+const { Issue } = require("../models");
 
 const main = async () => {
   Issue.updateMany({}, { isOpen: true })

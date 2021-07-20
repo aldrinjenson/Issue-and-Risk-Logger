@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-const { MainGroup } = require("../models/MainGroup");
+const { MainGroup } = require("../models");
 
 // takes buttons and returns markup for regular keyboard
 const getKeyboardOptions = (buttons) => {

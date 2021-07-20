@@ -1,6 +1,4 @@
-const { Action } = require("./models/Action");
-const { Issue } = require("./models/Issue");
-const { Risk } = require("./models/Risk");
+const { Action, Issue, Risk } = require("./models");
 const { getKeyboardOptions } = require("./utils/common");
 const { getDateStrFromDateObj } = require("./utils/messageUtils");
 

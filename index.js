@@ -39,13 +39,14 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Bot active\nCurrent Time: " + new Date());
 });
-app.post("/registerToken", (req, res) => {
-  const token = req.body.token; // !!!!!!!!!!!!!!!!!!!! TO BE FIXED HERE????????????????????????????
-  createUser(token)
-    .then((msg) => {
-      res.send({ msg, err: 0 });
-    })
-    .catch((errMsg) => res.send({ msg: errMsg, err: 1 }));
+
+app.post("/registerToken", async (req, res) => {
+  const token = req.body.token;
+  const { msg, err } = await createUser(token);
+  console.log({ msg, err });
+  if (err) {
+    res.status(500).send({ msg, err });
+  } else res.status(200).send({ msg, err });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -192,8 +193,7 @@ cron.schedule(
   }
 );
 
-setTimeout(() => {
-  // generateDailyReports(bot);
-  generateDailyBackup(bot);
-}, 2500);
+// setTimeout(() => {
+// generateDailyBackup(bot);
+// }, 2500);
 // fix up above issue with register token

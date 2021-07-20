@@ -1,5 +1,5 @@
+const { SubGroup } = require("../models");
 const { entities } = require("../constants");
-const { SubGroup } = require("../models/SubGroup");
 const { handleListRecords } = require("../utils/entityUtils");
 
 const sendReport = async (bot, opts, entityModels) => {
