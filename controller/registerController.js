@@ -69,38 +69,28 @@ const registerAsMainGroup = async (data, bot) => {
     backupEmailId: emailId,
   });
 
-  newMainGroup
-    .save()
-    .then(async (savedMainGroup) => {
-      await bot.sendMessage(
-        groupId,
-        `"${message.chat.title}" registered as main group\nRegister sub groups using the following token:`
-      );
-      bot.sendMessage(groupId, joinToken);
+  try {
+    const savedMainGroup = await newMainGroup.save();
+    await bot.sendMessage(
+      groupId,
+      `"${message.chat.title}" registered as main group\nRegister sub groups using the following token:`
+    );
+    bot.sendMessage(groupId, joinToken);
 
-      existingUser.isTokenUsed = true;
-      existingUser.userId = from.id;
-      existingUser.userName = from.username;
-      existingUser.connectedMainGroup = savedMainGroup._id;
+    existingUser.isTokenUsed = true;
+    existingUser.userId = from.id;
+    existingUser.userName = from.username;
+    existingUser.connectedMainGroup = savedMainGroup._id;
 
-      existingUser
-        .save()
-        .then(() =>
-          console.log(
-            `Token: ${registerToken} has been used to register main group`
-          )
-        )
-        .catch((err) =>
-          console.log("error in updating token used status", err)
-        );
-    })
-    .catch((err) => {
-      bot.sendMessage(
-        groupId,
-        "There seems to be some error in registration. Please try again after some time"
-      );
-      console.log(err);
-    });
+    await existingUser.save();
+    console.log(`Token: ${registerToken} has been used to register main group`);
+  } catch (err) {
+    bot.sendMessage(
+      groupId,
+      "There seems to be some error in registration. Please verify your details and try again"
+    );
+    console.log("Error in registration: " + err);
+  }
 };
 
 const handleTokenVerifyAndRegisterSubgroup = (msg, bot) => {

@@ -182,7 +182,7 @@ bot.on("message", (msg) => {
 });
 
 cron.schedule(
-  "0 7 * * *",
+  "0 8 * * *",
   () => {
     console.log("8 AM, sending daily reports and backups");
     generateDailyBackup(bot);

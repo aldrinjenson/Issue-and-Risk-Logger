@@ -41,18 +41,10 @@ const handleButtons = (rows) => {
   };
 };
 
-const checkIfMainGroup = (groupId) =>
-  new Promise((resolve) => {
-    MainGroup.find({ groupId }, (err, data) => {
-      if (err) {
-        console.log("error " + err);
-        return;
-      }
-      if (data.length) {
-        resolve(true);
-      } else resolve(false);
-    });
-  });
+const checkIfMainGroup = async (groupId) => {
+  const existingMainGroup = await MainGroup.findOne({ groupId }).exec();
+  return Boolean(existingMainGroup);
+};
 
 const messageReplyPairs = {};
 const handleReplyMessage = (msgId, callBack) => {
