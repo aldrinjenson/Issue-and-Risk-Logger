@@ -2,11 +2,11 @@ const { User } = require("../models");
 
 const handleValidateToken = (token) => {
   // proper strong validation can be added here once front-end has been fully set
-  return !token.length >= 2; // :)
+  return typeof token === "string" && token.length >= 2; // :)
 };
 
 const createUser = async (registerToken = "") => {
-  if (handleValidateToken(registerToken)) {
+  if (!handleValidateToken(registerToken)) {
     return { msg: "Token failed validation", err: 1 };
   }
 
