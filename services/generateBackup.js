@@ -1,5 +1,4 @@
 const excel = require("node-excel-export");
-const fs = require("fs");
 const { MainGroup, Issue, Risk, Action } = require("../models");
 const { entities } = require("../constants");
 const { getDateStrFromDateObj } = require("../utils/messageUtils");
@@ -69,9 +68,8 @@ const specification = {
 };
 
 const generateReport = async (issuesList, risks, actions, bot, group) => {
-  const { groupId, groupName, backupEmailId } = group;
-  console.log(backupEmailId);
-  const reportBuffer = await excel.buildExport([
+  // const {  backupEmailId } = group;
+  const reportBuffer = excel.buildExport([
     {
       name: "Issues",
       specification: specification,
@@ -89,15 +87,14 @@ const generateReport = async (issuesList, risks, actions, bot, group) => {
     },
   ]);
 
-  await sendMail(reportBuffer, backupEmailId);
+  await sendMail(reportBuffer, group);
 
-  // to be deleted
-  const fileOptions = {
-    contentType:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    filename: `${groupName} - Daily backup.xlsx`,
-  };
-  await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
+  // const fileOptions = {
+  //   contentType:
+  //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  //   filename: `${groupName} - Daily backup.xlsx`,
+  // };
+  // await bot.sendDocument(groupId, reportBuffer, {}, fileOptions);
 
   // fs.writeFile("./report.xlsx", reportBuffer, (err) => {
   //   if (err) {
@@ -129,7 +126,7 @@ const getRecords = async (bot, group) => {
   }
 };
 
-const generateDailyBackup = async (bot) => {
+const generateBackup = async (bot) => {
   const maingroups = await MainGroup.find({}).lean().exec();
   const entityModels = Object.values(entities).map((entity) => entity.Model);
 
@@ -142,4 +139,4 @@ const generateDailyBackup = async (bot) => {
     .catch(() => console.log("error in sending daily excel backup"));
 };
 
-module.exports = { generateDailyBackup };
+module.exports = { generateBackup };

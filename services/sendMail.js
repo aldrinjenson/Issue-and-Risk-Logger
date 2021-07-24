@@ -1,39 +1,32 @@
 const nodemailer = require("nodemailer");
 
-const sendMail = async (reportBuffer, emailId) => {
-  const testAccount = await nodemailer.createTestAccount();
-
+const sendMail = async (reportBuffer, group) => {
+  const { backupEmailId: groupBackupEmailId, groupName } = group;
   const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: "gmail",
     auth: {
-      user: testAccount.user, // generated ethereal user
-      pass: testAccount.pass, // generated ethereal password
+      user: process.env.BB_EMAIL,
+      pass: process.env.BB_PASS,
     },
   });
 
-  const groupName = "Main Group AB";
+  console.log({ groupBackupEmailId, reportBuffer });
+  const dt = new Date().toDateString();
 
-  console.log({ emailId, reportBuffer });
-
-  let info = await transporter.sendMail({
-    from: "test@test.com", // sender address
-    to: "aldrinjenson@gmail.com", // list of receivers
+  await transporter.sendMail({
+    from: process.env.BB_EMAIL,
+    to: groupBackupEmailId, // list of receivers
     subject: `Daily Backup - ${groupName}`, // Subject line
-    text: `Daily Backup of ${groupName} \nSent from Issue and Risk Logger Bot`, // plain text body
+    text: `Daily Backup of ${groupName} for ${dt}\n-Sent from Issue and Risk Logger Bot`, // plain text body
     attachments: [
       {
-        filename: `Backup - ${new Date().toDateString()}, ${groupName}.xlsx`,
+        filename: `Backup - ${dt}, ${groupName}.xlsx`,
         content: reportBuffer,
-        // path: "./report.xlsx",
       },
     ],
   });
 
-  console.log("Message sent: %s", info.messageId);
-  // Preview only available when sending through an Ethereal account
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  console.log(`Mail sent to ${groupBackupEmailId} for group: ${groupName}`);
 };
 
 module.exports = { sendMail };

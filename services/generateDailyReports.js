@@ -6,7 +6,7 @@ const sendReport = async (bot, opts, entityModels) => {
   const { groupId } = opts;
   await bot.sendMessage(
     groupId,
-    `Daily Report for ${new Date().toLocaleDateString()}`
+    `Daily Report for ${new Date().toLocaleDateString("en-IN")}`
   );
 
   for (const Model of entityModels) {

@@ -25,7 +25,7 @@ const { handleIsFromPrivateMessage } = require("./utils/groupUtils");
 const { entities } = require("./constants");
 const { createUser } = require("./utils/registerUtils");
 const { generateDailyReports } = require("./services/generateDailyReports");
-const { generateDailyBackup } = require("./services/generateBackupReport");
+const { generateBackup } = require("./services/generateBackup");
 
 const app = express();
 app.use((req, res, next) => {
@@ -184,15 +184,26 @@ bot.on("message", (msg) => {
 cron.schedule(
   "0 8 * * *",
   () => {
-    console.log("8 AM, sending daily reports and backups");
-    generateDailyBackup(bot);
+    console.log("8 AM, sending daily reports to subgroups");
     generateDailyReports(bot);
   },
   {
     timezone: "Asia/Kolkata",
   }
 );
+cron.schedule(
+  "0 22 * * *",
+  () => {
+    console.log("10 PM, sending backup excel sheet to main groups");
+    generateBackup(bot);
+  },
+  {
+    timezone: "Asia/Kolkata",
+  }
+);
 
+// for testing during development
 // setTimeout(() => {
-//   generateDailyBackup(bot);
+//   generateBackup(bot);
+//   generateDailyReports(bot);
 // }, 2500);

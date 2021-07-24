@@ -39,7 +39,7 @@ const sendRecordsAsPdf = async (
     html: pdfTemplate,
     data: {
       records: modfiedRecords,
-      date: new Date().toLocaleString(),
+      date: new Date().toLocaleString("en-IN"),
       isMainGroup: !isSubGroup,
       entityName,
       groupName,
